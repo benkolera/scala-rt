@@ -1,0 +1,30 @@
+RT/4.0.12 200 Ok
+
+id: ticket/962663
+Queue: dev.support
+Owner: Nobody
+Creator: linda
+Subject: (GJR) FW: prepaid notifications and plan limit
+Status: open
+Priority: 100
+InitialPriority: 100
+FinalPriority: 100
+Requestors: Gregory.Clay@iseek.com.au, linda@iseek.com.au
+Cc:
+AdminCc:
+Created: 2013-06-07 15:35:28
+Starts: Not set
+Started: 2013-06-07 16:49:40
+Due: 2013-06-14 15:35:28
+Resolved: Not set
+Told: 2013-06-07 16:49:40
+LastUpdated: 2013-06-07 16:49:40
+TimeEstimated: 0
+TimeWorked: 0
+TimeLeft: 0
+CF.{Cost Centre}: 
+CF.{Product}: 
+CF.{Development Work Type}: 
+CF.{Initiator}: 
+CF.{Progress}: 
+

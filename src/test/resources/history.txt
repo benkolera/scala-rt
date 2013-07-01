@@ -1,0 +1,329 @@
+RT/4.0.12 200 Ok
+
+# 15/15 (id/11041164/total)
+
+id: 11041164
+Ticket: 968312
+TimeTaken: 1
+Type: Create
+Field: 
+OldValue: 
+NewValue: 
+Data: 
+Description: Ticket created by bkolera
+
+Content: This is a test.
+         
+         --
+         Ben Kolera
+         Team Leader, Development
+
+Creator: bkolera
+Created: 2013-06-24 07:43:08
+
+Attachments: 
+             5236258: untitled (0b)
+             5236259: untitled (131b)
+             5236260: 7ac46560_I_Have_No_Idea_What_I_m_Doing.jpeg (43.5k)
+
+
+--
+
+# 15/15 (id/11041165/total)
+
+id: 11041165
+Ticket: 968312
+TimeTaken: 0
+Type: EmailRecord
+Field: 
+OldValue: 
+NewValue: 
+Data: <rt-4.0.12-7683-1372059789-499.968312-19-0@test.com>
+Description: Outgoing email recorded by RT_System
+
+Content:  Transaction: Ticket created by bkolera
+                 Date: Mon Jun 24 17:43:08 2013
+                Queue: dev.support
+              Subject: TEST
+                Owner: bkolera
+               Status: new
+          Ticket <URL: https://rt.test.com/Ticket/Display.html?id=968312 >
+         -------------------------------------------------------------------------
+         
+         This is a test.
+         
+         --
+         Ben Kolera
+         Team Leader, Development
+
+Creator: RT_System
+Created: 2013-06-24 07:43:09
+
+Attachments: 
+             5236261: untitled (440b)
+
+
+--
+
+# 15/15 (id/11041172/total)
+
+id: 11041172
+Ticket: 968312
+TimeTaken: 0
+Type: AddReminder
+Field: RT::Ticket
+OldValue: 
+NewValue: 968313
+Data: 
+Description: Reminder 'REMINDER TO CLOSE THIS!' added by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-24 07:43:41
+Attachments: 
+
+--
+
+# 15/15 (id/11041181/total)
+
+id: 11041181
+Ticket: 968312
+TimeTaken: 0
+Type: ResolveReminder
+Field: RT::Ticket
+OldValue: 
+NewValue: 968313
+Data: 
+Description: Reminder 'REMINDER TO CLOSE THIS!' completed by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-24 07:44:01
+Attachments: 
+
+--
+
+# 15/15 (id/11041183/total)
+
+id: 11041183
+Ticket: 968312
+TimeTaken: 10
+Type: Correspond
+Field: 
+OldValue: 
+NewValue: 
+Data: No Subject
+Description: Correspondence added by bkolera
+
+Content: Taken!
+         
+         --
+         Ben Kolera
+         Team Leader, Development
+
+Creator: bkolera
+Created: 2013-06-24 07:44:27
+
+Attachments: 
+             5236265: untitled (121b)
+
+
+--
+
+# 15/15 (id/11041186/total)
+
+id: 11041186
+Ticket: 968312
+TimeTaken: 0
+Type: Status
+Field: Status
+OldValue: new
+NewValue: open
+Data: 
+Description: Status changed from 'new' to 'open' by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-24 07:44:28
+Attachments: 
+
+--
+
+# 15/15 (id/11041189/total)
+
+id: 11041189
+Ticket: 968312
+TimeTaken: 0
+Type: Set
+Field: Owner
+OldValue: 377964
+NewValue: 10
+Data: 
+Description: Untaken by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-24 07:45:04
+Attachments: 
+
+--
+
+# 15/15 (id/11041190/total)
+
+id: 11041190
+Ticket: 968312
+TimeTaken: 0
+Type: DelWatcher
+Field: AdminCc
+OldValue: 375978
+NewValue: 
+Data: 
+Description: AdminCc devnull@test.com deleted by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-24 07:45:05
+Attachments: 
+
+--
+
+# 15/15 (id/11041196/total)
+
+id: 11041196
+Ticket: 968312
+TimeTaken: 20
+Type: Comment
+Field: 
+OldValue: 
+NewValue: 
+Data: No Subject
+Description: Comments added by bkolera
+
+Content: Comment!
+         
+         --
+         Ben Kolera
+         Team Leader, Development
+
+Creator: bkolera
+Created: 2013-06-24 07:45:29
+
+Attachments: 
+             5236273: untitled (123b)
+
+
+--
+
+# 15/15 (id/11041197/total)
+
+id: 11041197
+Ticket: 968312
+TimeTaken: 0
+Type: CommentEmailRecord
+Field: 
+OldValue: 
+NewValue: 
+Data: <rt-4.0.12-1934-1372059929-1550.968312-8-0@test.com>
+Description: Outgoing email about a comment recorded by RT_System
+
+Content: 
+         https://rt.test.com/Ticket/Display.html?id=968312
+         This is a comment.  It is not sent to the Requestor(s):
+         
+         Comment!
+         
+         --
+         Ben Kolera
+         Team Leader, Development
+
+Creator: RT_System
+Created: 2013-06-24 07:45:29
+
+Attachments: 
+             5236274: untitled (236b)
+
+
+--
+
+# 15/15 (id/11041203/total)
+
+id: 11041203
+Ticket: 968312
+TimeTaken: 0
+Type: DeleteLink
+Field: HasMember
+OldValue: fsck.com-rt://test.com/ticket/895253
+NewValue: 
+Data: 
+Description: Member ticket #895253 deleted by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-24 07:46:12
+Attachments: 
+
+--
+
+# 15/15 (id/11044555/total)
+
+id: 11044555
+Ticket: 968312
+TimeTaken: 0
+Type: CustomField
+Field: 58
+OldValue: Customer
+NewValue: Automatic System Report
+Data: 
+Description: Initiator Customer changed to Automatic System Report by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-25 01:05:45
+Attachments: 
+
+--
+
+# 15/15 (id/11044571/total)
+
+id: 11044571
+Ticket: 968312
+TimeTaken: 0
+Type: AddWatcher
+Field: Cc
+OldValue: 
+NewValue: 377736
+Data: 
+Description: Cc ben@test.com added by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-25 01:09:31
+Attachments: 
+
+--
+
+# 15/15 (id/11044577/total)
+
+id: 11044577
+Ticket: 968312
+TimeTaken: 0
+Type: Told
+Field: Told
+OldValue: 
+NewValue: 2013-06-27 14:00:00
+Data: 
+Description: Told changed from Not set to 2013-06-28 00:00:00 by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-25 01:09:33
+Attachments: 
+
+--
+
+# 15/15 (id/11044717/total)
+
+id: 11044717
+Ticket: 968312
+TimeTaken: 0
+Type: AddLink
+Field: DependsOn
+OldValue: 
+NewValue: fsck.com-rt://test.com/ticket/968493
+Data: 
+Description: Dependency on ticket #968493 added by bkolera
+Content: This transaction appears to have no content
+Creator: bkolera
+Created: 2013-06-25 01:28:19
+Attachments: 

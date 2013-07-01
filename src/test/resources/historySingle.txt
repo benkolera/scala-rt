@@ -1,0 +1,30 @@
+RT/4.0.12 200 Ok
+
+# 17/17 (id/10032769/total)
+
+id: 10032769
+Ticket: 894804
+TimeTaken: 0
+Type: Create
+Field: 
+OldValue: 
+NewValue: 
+Data: 
+Description: Ticket created by test@test.com
+
+Content: Hi Gents,
+         
+         Can you please action this mystery task?
+         
+         Kind Regards,
+         Test Man
+
+Creator: test@test.com
+Created: 2012-11-27 23:00:31
+
+Attachments: 
+             4743161: untitled (0b)
+             4743162: untitled (0b)
+             4743163: untitled (889b)
+             4743164: untitled (5.5k)
+             4743165: image001.jpg (3.1k)
