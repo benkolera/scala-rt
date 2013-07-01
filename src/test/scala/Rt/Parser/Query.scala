@@ -1,9 +1,9 @@
  package Rt.Parser
 
-import org.specs._
+import org.specs2._
 import scalaz._
 
-object QueryParserSpec extends Specification {
+object QueryParserSpec extends mutable.Specification {
   "The Query Response Parser" should {
     "Return Authentication required for 401" in {
       Query.parseQueryResponse(

@@ -1,11 +1,11 @@
 package Rt.Parser
 
-import org.specs._
+import org.specs2._
 import scalaz._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.DateTimeZone.UTC
 
-object TicketParserSpec extends Specification {
+object TicketParserSpec extends mutable.Specification {
 
   import scala.io.Source
   val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
@@ -26,8 +26,8 @@ object TicketParserSpec extends Specification {
           owner = None:Option[String],
           creator = "linda",
           requestors = List("Gregory.Clay@iseek.com.au","linda@iseek.com.au"),
-          cc = List[String](),
-          adminCc = List[String]()
+          ccs = List[String](),
+          adminCcs = List[String]()
         ),
         priority = Rt.TicketPriority(
           priority = 100,
@@ -57,7 +57,7 @@ object TicketParserSpec extends Specification {
         )
       )
 
-      ticketDisj.isRight must be(true)
+      ticketDisj.isRight must_==(true)
       //Hack the test to make this work for now. Was getting a:
       //Values have the same string representation but possibly different types
       //but I can't see how it could be a different type as I took the

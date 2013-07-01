@@ -1,9 +1,9 @@
 package Rt.Parser
 
-import org.specs._
+import org.specs2._
 import scalaz._
 
-object ParserSpec extends Specification {
+object ParserSpec extends mutable.Specification {
   "The response parser" should {
     "Throw an error on an empty array" in {
       parseResponse(Nil) must beEqualTo(-\/(BadResponse("")))

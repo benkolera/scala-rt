@@ -1,10 +1,10 @@
 package Rt.Parser
 
-import org.specs._
+import org.specs2._
 import scalaz._
 import org.joda.time.{DateTime,DateTimeZone}
 
-object HistoryParserSpec extends Specification {
+object HistoryParserSpec extends mutable.Specification {
 
   import scala.io.Source
 
@@ -42,7 +42,7 @@ object HistoryParserSpec extends Specification {
         historyDisj must be(Nil)
       }
 
-      historyDisj.isRight must be(true)
+      historyDisj.isRight must_==(true)
       //Hack the test to make this work for now. Was getting a:
       //Values have the same string representation but possibly different types
       //but I can't see how it could be a different type as I took the
@@ -60,9 +60,9 @@ object HistoryParserSpec extends Specification {
         historyDisj must be(Nil)
       }
 
-      historyDisj.isRight must be(true)
+      historyDisj.isRight must_==(true)
       val histories = historyDisj.toOption.get
-      histories.length must be (15)
+      histories.length must_==(15)
 
       histories(0) must_==(Create(
         id = 11041164,

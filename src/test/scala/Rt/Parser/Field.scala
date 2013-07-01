@@ -1,9 +1,9 @@
 package Rt.Parser
 
-import org.specs._
+import org.specs2._
 import scalaz._
 
-object FieldParserSpec extends Specification {
+object FieldParserSpec extends mutable.Specification {
   "The Field Parser" should {
     "Should return no Fields" in {
       Field.parseFields(Nil) must beEqualTo(\/-(Nil))

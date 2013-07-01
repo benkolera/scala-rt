@@ -1,7 +1,7 @@
 package Rt
 
-import org.specs._
-import org.specs.mock.Mockito
+import org.specs2._
+import org.specs2.mock.Mockito
 import org.mockito.Matchers._
 import scalaz._
 import dispatch._
@@ -10,10 +10,11 @@ import scala.concurrent.{Await,Future}
 import scala.concurrent.duration._
 
 
-object TicketSpec extends Specification with Mockito {
+object TicketSpec extends mutable.Specification with Mockito {
 
   import scalaz.contrib.std.scalaFuture._
   import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.duration.Duration
 
   def runMockRtM( http: (Req => Response) , m: RtM[Int] ) = {
     m.run.run(
@@ -62,9 +63,12 @@ object TicketSpec extends Specification with Mockito {
             "Subject: test subject",
             "Queue: testQueue",
             "Text: Test text",
+            "Requestor: ",
+            "Cc: ",
+            "AdminCc: ",
             ""
           ).mkString("\n"),
-          "Ticket 1337 created"
+          "# Ticket 1337 created."
         ),
         Ticket.create(NewTicket(
           queue="testQueue",
@@ -72,12 +76,14 @@ object TicketSpec extends Specification with Mockito {
           text="Test text"
         ))
       )
-      val (logs,resultDisj,cj) = Await.result( resultFuture , 5.seconds )
+      val (logs,resultDisj,cj) = Await.result( resultFuture , Duration("5 seconds") )
 
       if( resultDisj.isLeft ) {
+        println( "Failure logs:" )
+        logs.foreach( println _ )
         resultDisj must be(Nil)
       }
-      resultDisj.isRight must be(true)
+      resultDisj.isRight must_==(true)
       resultDisj.toOption.get must_==(1337)
     }
   }
