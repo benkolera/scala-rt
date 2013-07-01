@@ -14,7 +14,9 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.0.0",
   "org.scalaz" %% "scalaz-effect" % "7.0.0",
   "org.typelevel" %% "scalaz-contrib-210" % "0.1.4" ,
-  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2"
+  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
+  "com.github.nscala-time" %% "nscala-time" % "0.4.2",
+  "org.mockito" % "mockito-core" % "1.9.5"
 )
 
 resolvers ++= Seq(

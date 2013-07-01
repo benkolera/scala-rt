@@ -1,111 +1,32 @@
 import dispatch._
-import com.ning.http.client.{AsyncHandler,AsyncHttpClient,Request}
-
-case class RtConfig (
-  username: String,
-  password: String,
-  hostname: String,
-  exContext: scala.concurrent.ExecutionContext,
-  http:     (Req => scala.concurrent.Future[Either[Throwable,Res]])
-)
-
-object RtConfig {
-  def makeConfig(username: String, password: String, hostname: String )(
-    implicit ex: scala.concurrent.ExecutionContext
-  ) = {
-    RtConfig(
-      username,
-      password,
-      hostname,
-      ex,
-      (req:Req) => Http.apply(req).either
-    )
-  }
+import com.ning.http.client.{
+  AsyncHandler,
+  AsyncHttpClient,
+  Request,
+  Part,
+  Cookie,
+  StringPart
 }
 
-sealed trait RtError
-case class ServerError(t: Throwable) extends RtError
-object LoginFailed extends RtError
-object NotLoggedIn extends RtError
+import scalaz._
+import syntax.monad._
+import scalaz.contrib.std.scalaFuture._
+import std.list._
+import std.either._
+import scala.concurrent.{ExecutionContext,Future}
+import scala.collection.JavaConversions._
 
-object Rt {
-
-  import com.ning.http.client.Cookie
-  import scalaz._
-  import syntax.monad._
-  import scalaz.contrib.std.scalaFuture._
-  import std.list._
-  import std.either._
-  import scala.concurrent.{ExecutionContext,Future}
-  import scala.collection.JavaConversions._
+package object Rt {
 
   type CookieJar = java.util.List[Cookie]
-  type RtEither[+A] = EitherT[Future,RtError,A]
-  type RtM[+A] = ReaderWriterStateT[RtEither,RtConfig,List[String],CookieJar,A]
-
-  val titleRe = """<title>(.+)</title>""".r
-  def rt( implicit a:Monad[Future]) = getHostname.map( hn =>
-    host(hn).secure <:< Map(
-      "User-Agent" -> "ScalaRT/0.01",
-      "Referer"    -> s"https://$hn" //HACK: Couldn't get query to work without getting CSRF error without this.
-    )
-  )
-  def rtApi( implicit a:Monad[Future]) = rt.map( _ / "REST" / "1.0" )
+  type RtRwsT[M[+_],+A] = ReaderWriterStateT[M,Config,List[String],CookieJar,A]
+  type RtRws[+A] = RtRwsT[Future,A]
+  type RtEitherT[M[+_],+A] = EitherT[M,Error,A]
+  type RtM[+A] = RtEitherT[RtRws,A]
 
   def emptyCookieJar = new java.util.ArrayList[com.ning.http.client.Cookie]()
 
-  def rtRws[A](
-    f: (RtConfig,CookieJar) => RtEither[(List[String],A,CookieJar)]
-  )( implicit a:Monad[Future] ) =
-    ReaderWriterStateT[RtEither,RtConfig,List[String],CookieJar,A]( f )
-
-  def setCookies(jar: CookieJar)( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (Nil,(),jar).point[RtEither] )
-  def getCookies( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (Nil,s,s).point[RtEither] )
-
-  def getUsername( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (Nil,r.username,s).point[RtEither] )
-  def getPassword( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (Nil,r.password,s).point[RtEither] )
-  def getHostname( implicit m: Monad[Future] ) =
-    rtRws( (r,s) => (Nil,r.hostname,s).point[RtEither] )
-  def getExecutionContext( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (Nil,r.exContext,s).point[RtEither] )
-  def getHttp( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (Nil,r.http,s).point[RtEither] )
-
-  def log(l:String)( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => (List(l),(),s).point[RtEither] )
-
-  def fail( err: RtError )( implicit m:Monad[Future] ) =
-    rtRws( (r,s) => EitherT.left(err.point[Future]) )
-
-  def doHttp( req: Req )( implicit m:Monad[Future] ):RtM[Res] = {
-    val r = req.build
-    log( s"REQ: ${r}" ).flatMap( _ =>
-      getExecutionContext.flatMap( ec =>
-        getHttp.flatMap( http => {
-          val et = EitherT(
-            http(req).map(
-              either => \/.fromEither(either.left.map(ServerError(_)))
-            )(ec)
-          )
-
-          rtRws( (r,s) => et.map( res => (Nil,res,s) ) )
-        } )
-      )
-    )
-  }
-
-  def callApi( req: Req )( implicit m:Monad[Future] ) = {
-    for {
-      cookies <- getCookies
-      res     <- doHttp( cookies.foldLeft( req )( (r,c) => r.addCookie(c)) )
-    } yield res
-  }
-
-  def login( implicit m:Monad[Future] ) = {
+  def login( implicit m:Monad[Future] ):RtM[Unit] = {
     def loginReq( rtHost:Req , username:String , password:String ) =
       rtHost <<? Map(
         "user" -> username ,
@@ -130,69 +51,109 @@ object Rt {
     } yield ()
   }
 
-  def showTicket(id:Int)( implicit m:Monad[Future] ) = {
+  // == INTERNAL SHARED METHODS ================================================
+
+  private[Rt] def log(l:String)( implicit m:Monad[Future] ):RtM[Unit] =
+    rtM( (r,s) => (List(l),(),s).point[Future] )
+
+  private[Rt] def fail[A]( err: Error )( implicit m:Monad[Future] ):RtM[A] =
+    EitherT.left( err.point[RtRws] )
+
+  private[Rt] def callApi( req: Req )( implicit m:Monad[Future] ):RtM[String] = {
     for {
-      req <- rtApi.map( _ / "ticket" / id / "show" )
-      res <- callApi( req )
+      cookies <- getCookies
+      res     <- doHttp( cookies.foldLeft( req )( (r,c) => r.addCookie(c)) )
     } yield res.getResponseBody()
   }
 
-  def showTicketAttachments(id:Int)( implicit m:Monad[Future] ) = {
-    for {
-      req <- rtApi.map( _ / "ticket" / id / "attachments" )
-      res <- callApi( req )
-    } yield res.getResponseBody()
+  private[Rt] def rtApi(implicit a:Monad[Future]):RtM[Req] =
+    rt.map( _ / "REST" / "1.0" )
+
+  private[Rt] def addContentParam(c: String)(req: Req) = {
+    req << Map( "content" -> c )
+  }
+  private[Rt] def addParts(ps: List[Part])(req: Req) = {
+    ps.foldLeft( req )( _.addBodyPart(_) ).setMethod("POST")
   }
 
-  def showTicketAttachment(ticketId:Int,attachId:Int)(
+  private[Rt] def liftParseError[A]( pOut: Parser.ParserError \/ A )(
     implicit m:Monad[Future]
-  ) = {
-    for {
-      req <- rtApi.map( _ / "ticket" / ticketId / "attachments" / attachId )
-      res <- callApi( req )
-    } yield res.getResponseBody()
-  }
-
-  def query(query:String)(
-    implicit m:Monad[Future]
-  ) = {
-    for {
-      req <- rtApi.map( _ / "search" / "ticket" ).map( _  << Map( "query" -> query ) )
-      res <- callApi( req )
-    } yield res.getResponseBody()
-  }
-
-  def test = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    (for {
-      _ <- login
-      ticketRes      <- showTicket(962663)
-      attachmentsRes <- showTicketAttachments(962663)
-      attachRes      <- showTicketAttachment(962663,5199532)
-      queryRes       <- query("Queue='dev.support' AND Owner='Nobody' AND (Status='new' OR Status='open')")
-    } yield (ticketRes,attachmentsRes,attachRes,queryRes)).run(
-      RtConfig.makeConfig(
-        "bkolera" ,
-        "xxxxx" ,
-        "rt.iseek.com.au"
-      ),
-      emptyCookieJar
-    ).fold(
-      err => println( "ERROR: " + err ),
-      t => {
-        import scalax.io._
-        val ticket = Resource.fromFile("ticket.data")
-        val attachments = Resource.fromFile("attachments.data")
-        val attachment = Resource.fromFile("attachment.data")
-        val query = Resource.fromFile("query.data")
-        List(ticket,attachments,attachment,query).foreach( _.truncate(0) )
-        ticket.write( t._2._1 )
-        attachments.write( t._2._2 )
-        attachment.write( t._2._3 )
-        query.write( t._2._4 )
-        t._1.foreach( println( _ ) )
-        println( "DONE" )
-      }
+  ): RtM[A] =
+    pOut.fold(
+      parseError => EitherT.left(BadResponse(parseError).point[RtRws]),
+      output     => output.point[RtM]
     )
+
+  // == PRIVATE METHODS ========================================================
+
+  private def rtRws[A](
+    f: (Config,CookieJar) => Future[(List[String],A,CookieJar)]
+  )( implicit a:Monad[Future] ):RtRws[A] =
+    ReaderWriterStateT[Future,Config,List[String],CookieJar,A]( f )
+
+  private def rtM[A](
+    f: (Config,CookieJar) => Future[(List[String],A,CookieJar)]
+  )( implicit a:Monad[Future] ):RtM[A] =
+    EitherT.right[RtRws,Error,A]( rtRws( f ) )
+
+  private def setCookies(jar: CookieJar)( implicit m:Monad[Future] ) =
+    rtM( (r,s) => (Nil,(),jar).point[Future] )
+  private def getCookies( implicit m:Monad[Future] ) =
+    rtM( (r,s) => (Nil,s,s).point[Future] )
+
+  private def getConfig( implicit m:Monad[Future] ) =
+    rtM( (r,s) => (Nil,r,s).point[Future] )
+  private def getUsername( implicit m:Monad[Future] ) =
+    getConfig.map( _.username )
+  private def getPassword( implicit m:Monad[Future] ) =
+    getConfig.map( _.password )
+  private def getHostname( implicit m: Monad[Future] ) =
+    getConfig.map( _.hostname )
+  private def getExecutionContext( implicit m:Monad[Future] ) =
+    getConfig.map( _.exContext )
+  private def getHttp( implicit m:Monad[Future] ) =
+    getConfig.map( _.http )
+
+  private def doHttp( req: Req )( implicit m:Monad[Future] ):RtM[Res] = {
+    val r = req.build
+    def liftHttpResToRtM( config: Config ):RtM[Res] = {
+      EitherT.right[RtRws,Error,Either[Throwable,Res]](config.http(req).liftM[RtRwsT]).flatMap{
+        case Left(t) => EitherT.left[RtRws,Error,Res](
+          rtRws( (r,s) => (List(s"RES: Exception: ${t.getMessage}"),ServerError(t),s).point[Future])
+        )
+        case Right(res) => rtM(
+          (r,s) => (List(s"RES: ${res.getResponseBody}"),res,s).point[Future]
+        )
+      }
+    }
+    def reqToString = {
+      val parts = Option(r.getParts)
+      val contentParam = Option(r.getParams).flatMap(ps => Option(ps.get("content")))
+      val contentPart = parts.flatMap( _.collect{ case s:StringPart => s }.headOption.map(_.getValue) )
+      List(
+        r,
+        "Parts:",
+        parts.map( _.map(_.getName).mkString(",") ).getOrElse(""),
+        "\nContent:",
+        contentParam orElse contentPart getOrElse "NONE"
+      ).mkString( " " )
+    }
+
+    for {
+      _      <- log( s"REQ: ${reqToString}" )
+      config <- getConfig
+      out    <- liftHttpResToRtM(config)
+    } yield out
   }
+
+  private def rt( implicit a:Monad[Future] ) = getHostname.map( hn =>
+    host(hn).secure <:< Map(
+      "User-Agent" -> "ScalaRT/0.01",
+      //HACK: Couldn't get query to work without getting CSRF error without this
+      "Referer"    -> s"https://$hn"
+    )
+  )
+
+  private val titleRe = """<title>(.+)</title>""".r
+
 }

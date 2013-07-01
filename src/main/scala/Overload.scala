@@ -26,4 +26,9 @@ object Overloads {
     http( Handler[String]( url("http://google.com") OK as.String ) )
   }
 
+  //This isn't hard to implement and get around, but it is a bit of a bother
+  //that would not be there if we used adts instead of overloading.
+
+  //Or I'm just stupid and making a deal out of something trivial. ;)
+
 }

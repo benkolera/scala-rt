@@ -13,6 +13,11 @@ object FieldParserSpec extends Specification {
         "1337: This is a field"
       )) must beEqualTo(\/-(List(Field("1337","This is a field"))))
     }
+    "Should handle fields with no value" in {
+      Field.parseFields(List(
+        "CF.{Cost Centre}:"
+      )) must beEqualTo(\/-(List(Field("CF.{Cost Centre}",""))))
+    }
     "Should handle fields with curly braces" in {
       Field.parseFields(List(
         "CF.{Progress}: This is progress"
