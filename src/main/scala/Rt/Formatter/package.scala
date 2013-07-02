@@ -7,7 +7,7 @@ import scalaz._
 
 package object Formatter {
   def fieldListToString( l: List[String] ) = {
-    l.mkString(",")
+    l.mkString(",\n        ")
   }
 
   private val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")

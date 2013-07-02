@@ -128,14 +128,12 @@ package object Rt {
     }
     def reqToString = {
       val parts = Option(r.getParts)
-      val contentParam = Option(r.getParams).flatMap(ps => Option(ps.get("content")))
       val contentPart = parts.flatMap( _.collect{ case s:StringPart => s }.headOption.map(_.getValue) )
       List(
         r,
         "Parts:",
         parts.map( _.map(_.getName).mkString(",") ).getOrElse(""),
-        "\nContent:",
-        contentParam orElse contentPart getOrElse "NONE"
+        contentPart.map( "Content Part:" + _ ).getOrElse("")
       ).mkString( " " )
     }
 

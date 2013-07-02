@@ -158,6 +158,10 @@ object Ticket {
     edit( id , Formatter.fieldsToContentString(List("Owner" -> newOwner)) )
   }
 
+  def moveQueue( id: Int , newQueue:String )( implicit m:Monad[Future] ) = {
+    edit( id , Formatter.fieldsToContentString(List("Queue" -> newQueue)) )
+  }
+
   def update( ticket: Ticket )( implicit m:Monad[Future] ) = {
     edit( ticket.id , Formatter.Update.toContentString( ticket ) )
   }

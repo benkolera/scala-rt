@@ -79,6 +79,12 @@ object Field {
     extractField(fieldMap)(fieldName).map( Read.readList _ )
   }
 
+  def extractOptFieldList( fieldMap: Map[String,String] )(
+    fieldName: String
+  ):List[String] = {
+    fieldMap.get(fieldName).map( Read.readList _ ).getOrElse( Nil )
+  }
+
   case class PartialField( indent: Int, name: String, value: List[String])
   type FieldParserState[+A] = State[Option[PartialField],A]
   type FieldParser[+A] = EitherT[FieldParserState,(String,Int),A]

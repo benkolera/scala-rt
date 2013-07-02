@@ -1,5 +1,6 @@
 package Rt
 import scalaz._
+import scala.util.matching.Regex
 
 package object Parser {
 
@@ -37,6 +38,13 @@ package object Parser {
     parseResponse( body.split("\n").toList ).flatMap{
       case l::ls if s == l => \/-(())
       case resBody         => -\/(ExpectationNotMet(s,resBody.mkString("\n")))
+    }
+  }
+
+  def expectRegex( r:Regex , body:String ): ParserError \/ Unit = {
+    parseResponse( body.split("\n").toList ).flatMap{
+      case r()::ls => \/-(())
+      case resBody => -\/(ExpectationNotMet(r.toString,resBody.mkString("\n")))
     }
   }
 }
