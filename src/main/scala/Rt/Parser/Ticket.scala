@@ -16,7 +16,7 @@ object Ticket {
 
   def extractTicketPeople(
     m: Map[String,String]
-  ): ParserError \/ Rt.TicketPeople = {
+  ): Parser[Rt.TicketPeople] = {
     (
       Field.extractField(m)("Owner").map( Some(_).filter( _ != "Nobody" ) ) |@|
       Field.extractField(m)("Creator") |@|
@@ -28,7 +28,7 @@ object Ticket {
 
   def extractTicketPriority(
     m: Map[String,String]
-  ): ParserError \/ Rt.TicketPriority = {
+  ): Parser[Rt.TicketPriority] = {
     (
       Field.extractFieldInt(m)("Priority") |@|
       Field.extractFieldInt(m)("InitialPriority") |@|
@@ -38,7 +38,7 @@ object Ticket {
 
   def extractTicketDates(
     m: Map[String,String]
-  ): ParserError \/ Rt.TicketDates = {
+  ): Parser[Rt.TicketDates] = {
     (
       Field.extractFieldDateTime(m)("Created") |@|
       Field.extractFieldDateTime(m)("LastUpdated") |@|
@@ -56,13 +56,13 @@ object Ticket {
 
   def extractTicketEffort(
     m: Map[String,String]
-  ): ParserError \/ Rt.TicketEffort = {
+  ): Parser[Rt.TicketEffort] = {
     def extractEffort( fieldName:String ) =
       Field.extractField(m)(fieldName).flatMap{
-      case numberRe(minutes) => \/-(minutes.toInt)
-      case minutesRe(minutes) => \/-(minutes.toInt)
-      case hoursRe(hours) => \/-((hours.toDouble * 60).toInt)
-      case s => -\/(InvalidField(fieldName,s"Unknown effort value: $s"))
+      case numberRe(minutes) => minutes.toInt.point[Parser]
+      case minutesRe(minutes) => minutes.toInt.point[Parser]
+      case hoursRe(hours) => (hours.toDouble * 60).toInt.point[Parser]
+      case s => parserFail(InvalidField(fieldName,s"Unknown effort value: $s"))
     }
 
     (
@@ -81,14 +81,14 @@ object Ticket {
   }
 
   val ticketIdRe = """^ticket/(\d+)$""".r
-  def extractTicketId( s:String ): ParserError \/ Int = s match {
-    case ticketIdRe(id) => \/-(id.toInt)
-    case _ => -\/(InvalidField(
+  def extractTicketId( s:String ): Parser[Int] = s match {
+    case ticketIdRe(id) => id.toInt.point[Parser]
+    case _ => parserFail(InvalidField(
       "id",s"Expected ticket id to be of form 'ticket/{id}'. Got: $s"
     ))
   }
 
-  def parseTicket( responseStr: String ):ParserError \/ Rt.Ticket = {
+  def parseTicket( responseStr: String ):Parser[Rt.Ticket] = {
     parseResponse( responseStr.split("\n").toList ).flatMap( lines =>
       Field.parseFieldMap( lines ).flatMap( fieldMap => {
         (
@@ -100,7 +100,7 @@ object Ticket {
           extractTicketPriority( fieldMap ) |@|
           extractTicketDates( fieldMap ) |@|
           extractTicketEffort( fieldMap ) |@|
-          \/-( extractCustomFields( fieldMap ) )
+          extractCustomFields( fieldMap ).point[Parser]
         ){ Rt.Ticket.apply _ }
       })
     )

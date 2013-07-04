@@ -1,6 +1,7 @@
 package Rt.Parser
 
 import scalaz._
+import syntax.monad._
 
 object Link {
 
@@ -9,8 +10,8 @@ object Link {
   val internalTicketRe = """fsck.com-rt://[\w\.-_]+/ticket/(\d+)""".r
 
   def extractId( s:String ) = s match {
-    case idRe(id) => \/-(id.toInt)
-    case _        => -\/(InvalidField( "id" , "Couldn't parse ticket id" ))
+    case idRe(id) => id.toInt.point[Parser]
+    case _        => parserFail(InvalidField("id" , "Couldn't parse ticket id"))
   }
 
   def extractLink( s: String ): Rt.Link = s match {

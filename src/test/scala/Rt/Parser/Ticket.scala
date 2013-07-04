@@ -15,7 +15,7 @@ object TicketParserSpec extends mutable.Specification {
 
       val ticketDisj = Ticket.parseTicket(
         Source.fromURL(getClass.getResource("/ticket.txt")).mkString
-      )
+      ).run
 
       val expectedTicket = Rt.Ticket(
         id = 962663,

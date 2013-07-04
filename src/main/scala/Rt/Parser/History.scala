@@ -206,9 +206,9 @@ object History {
   def getConstructor( ticketType: String ) = {
     constructorMap.get(
       ticketType
-    ).fold[ ParserError\/(ConstructorArgs=>ConstructorOut) ](
-      -\/(UnknownHistoryType(ticketType))
-    )( \/-(_) )
+    ).fold[ Parser[ConstructorArgs=>ConstructorOut] ](
+      parserFail(UnknownHistoryType(ticketType))
+    )( _.point[Parser] )
   }
 
   case class ConstructorArgs(
@@ -219,22 +219,22 @@ object History {
     created: DateTime,
     fieldMap: Map[String,String]
   )
-  type ConstructorOut = ParserError \/ History
+  type ConstructorOut = Parser[History]
 
   def attachFieldsToAttachments(
     fs: List[Field]
-  ):ParserError \/ List[AttachmentInfo] = {
+  ):Parser[List[AttachmentInfo]] = {
     def convertToBytes( sizeStr: String , multiplier: Long = 1) = {
       (sizeStr.toDouble * multiplier).toLong
     }
 
     def splitAttachmentName( f: Field ) = {
       f.value match {
-        case attachRe(n,s,"b") => \/-((n,convertToBytes(s)))
-        case attachRe(n,s,"k") => \/-((n,convertToBytes(s,1024)))
-        case attachRe(n,s,"m") => \/-((n,convertToBytes(s,1024*1024)))
-        case attachRe(n,s,"g") => \/-((n,convertToBytes(s,1024*1024*1024)))
-        case _ => -\/(InvalidField(
+        case attachRe(n,s,"b") => (n,convertToBytes(s)).point[Parser]
+        case attachRe(n,s,"k") => (n,convertToBytes(s,1024)).point[Parser]
+        case attachRe(n,s,"m") => (n,convertToBytes(s,1024*1024)).point[Parser]
+        case attachRe(n,s,"g") => (n,convertToBytes(s,1024*1024*1024)).point[Parser]
+        case _ => parserFail(InvalidField(
           s"Attachment ${f.name}" ,
           s"'${f.value}' is not parsable as an attachment"
         ))
@@ -253,7 +253,9 @@ object History {
   }
 
   def watcherTypeToEnum( s:String ) = {
-    \/.fromTryCatch( WatcherType.withName(s) ).leftMap( _ =>
+    EitherT.fromTryCatch(
+      WatcherType.withName(s).point[Scalaz.Id]
+    ).leftMap( _ =>
       InvalidField(
         "History/AddWatcher.Field",
         s"$s is not a recognised watcher type"
@@ -491,13 +493,13 @@ object History {
     )
   }
 
-  def parseHistory( responseStr: String ):ParserError \/ List[History] = {
+  def parseHistory( responseStr: String ):Parser[List[History]] = {
     parseResponse( responseStr.split("\n").toList ).flatMap( lines =>
       splitHistories( lines ).map( historyLines =>
         Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
-          val extInt      = Field.extractFieldInt( fieldMap ) _
-          val extString   = Field.extractField( fieldMap ) _
-          val extDateTime = Field.extractFieldDateTime( fieldMap ) _
+          val extInt      = Field.extractFieldInt( fieldMap )
+          val extString   = Field.extractString( fieldMap )
+          val extDateTime = Field.extractFieldDateTime( fieldMap )
 
           for {
             id          <- extInt( "id" )

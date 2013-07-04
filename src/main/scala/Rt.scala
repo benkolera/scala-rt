@@ -76,13 +76,10 @@ package object Rt {
     ps.foldLeft( req )( _.addBodyPart(_) ).setMethod("POST")
   }
 
-  private[Rt] def liftParseError[A]( pOut: Parser.ParserError \/ A )(
+  private[Rt] def liftParseError[A]( pOut: Parser.Parser[A] )(
     implicit m:Monad[Future]
   ): RtM[A] =
-    pOut.fold(
-      parseError => EitherT.left(BadResponse(parseError).point[RtRws]),
-      output     => output.point[RtM]
-    )
+    EitherT( pOut.leftMap( BadResponse(_) ).run.point[RtRws] )
 
   // == PRIVATE METHODS ========================================================
 

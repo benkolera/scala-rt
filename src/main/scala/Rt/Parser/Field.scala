@@ -3,6 +3,7 @@ import scalaz._
 import std.list._
 import syntax.traverse._
 import syntax.monad._
+import std.function._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeZone.UTC
@@ -11,63 +12,58 @@ case class Field( name: String , value: String )
 
 object Field {
 
-  def parseFields( lines: List[String] ):ParserError \/ List[Field] = {
-    (lines ++ List("")).zipWithIndex.foldLeft[FieldParser[List[Field]]](
-      Nil.point[FieldParser]
+  def parseFields( lines: List[String] ):Parser[List[Field]] = {
+    val result = (lines ++ List("")).zipWithIndex.foldLeft(
+      List[Field]().point[FieldParser]
     )(
-      (acc,lineWNum) => acc.flatMap( outList =>
-        consumeLine( lineWNum._2 , lineWNum._1 ).map( _  match {
-          case None    => outList
-          case Some(f) => f :: outList
-        } )
+      (acc,lineWNum) => EitherT[FieldParserState,(String,Int),List[Field]](
+        StateT[Free.Trampoline,Option[PartialField],(String,Int) \/ List[Field]](
+          s => for{
+            outTuple     <- Free.suspend( acc.run(s) )
+            consumeTuple <- Free.suspend( consumeLine( lineWNum._2 , lineWNum._1 ).run(outTuple._1) )
+            out          <- Free.return_[Function0,(String,Int) \/ List[Field]](
+              outTuple._2.flatMap( outList =>
+                consumeTuple._2.map{
+                  case None    => outList
+                  case Some(f) => f :: outList
+                }
+              )
+            )
+          } yield (consumeTuple._1 , out )
+        )
       )
-    ).run(None)._2.bimap(
-      err => BadBodyLine( lines , err._2 + 1 , err._1 ),
-      _.reverse
+    ).run(None).run._2
+
+    EitherT(
+      result.bimap(
+        e => BadBodyLine( lines , e._2 + 1 , e._1 ), _.reverse
+      ).point[Scalaz.Id]
     )
+
   }
 
-  def parseFieldMap( lines: List[String] ):ParserError \/ Map[String,String] = {
+  def parseFieldMap( lines: List[String] ):Parser[Map[String,String]] = {
     parseFields( lines ).map( _.map( f => f.name -> f.value ).toMap )
   }
 
   def extractField( fieldMap: Map[String,String] )(
     fieldName: String
-  ):ParserError \/ String = {
-    fieldMap.get(fieldName).fold[ParserError \/ String](
-      -\/(MissingField(fieldName))
+  ):Parser[String] = {
+    fieldMap.get(fieldName).fold[Parser[String]](
+      parserFail(MissingField(fieldName))
     )(
-      \/-(_)
+      _.point[Parser]
     )
   }
 
-  def extractFieldInt( fieldMap: Map[String,String] )(
-    fieldName: String
-  ):ParserError \/ Int = {
-    extractField(fieldMap)(fieldName).flatMap(
-      Read.readInt(_).leftMap( InvalidField( fieldName, _ ) )
-    )
-  }
-
-  def extractFieldDateTime( fieldMap: Map[String,String] )(
-    fieldName: String
-  ):ParserError \/ DateTime = {
-    extractField(fieldMap)(fieldName).flatMap(
-      Read.readDateTime(_).leftMap( InvalidField( fieldName, _ ) )
-    )
-  }
-
-  def extractFieldOptDateTime( fieldMap: Map[String,String] )(
-    fieldName: String
-  ):ParserError \/ Option[DateTime] = {
-    extractField(fieldMap)(fieldName).flatMap{
-      Read.readOptDateTime(_).leftMap(InvalidField( fieldName, _ ))
-    }
-  }
+  val extractString = extractField _
+  val extractFieldInt = extract( Read.readInt _ ) _
+  val extractFieldDateTime = extract( Read.readDateTime ) _
+  val extractFieldOptDateTime = extract( Read.readOptDateTime ) _
 
   def extractFieldFields( fieldMap: Map[String,String] )(
     fieldName: String
-  ):ParserError \/ List[Field] = {
+  ):Parser[List[Field]] = {
     extractField(fieldMap)(fieldName).flatMap( str =>
       parseFields(str.split("\n").toList)
     )
@@ -75,7 +71,7 @@ object Field {
 
   def extractFieldList( fieldMap: Map[String,String] )(
     fieldName: String
-  ):ParserError \/ List[String] = {
+  ):Parser[List[String]] = {
     extractField(fieldMap)(fieldName).map( Read.readList _ )
   }
 
@@ -85,12 +81,26 @@ object Field {
     fieldMap.get(fieldName).map( Read.readList _ ).getOrElse( Nil )
   }
 
+  def extract[A]( read: (String => String \/ A) )(
+    fieldMap: Map[String,String]
+  )(
+    fieldName: String
+  ):Parser[A] = {
+    extractField(fieldMap)(fieldName).flatMap( s =>
+      EitherT(
+        read(s).leftMap( InvalidField( fieldName, _ ) ).point[Scalaz.Id]
+      )
+    )
+  }
+
   case class PartialField( indent: Int, name: String, value: List[String])
-  type FieldParserState[+A] = State[Option[PartialField],A]
+  type FieldParserState[+A] = StateT[Free.Trampoline,Option[PartialField],A]
   type FieldParser[+A] = EitherT[FieldParserState,(String,Int),A]
 
   def fieldParser[A](s: (Option[PartialField] => (Option[PartialField],A))) =
-    EitherT.right[FieldParserState,(String,Int),A]( State( s ) )
+    EitherT.right[FieldParserState,(String,Int),A](
+      StateT( newState => s(newState).point[Free.Trampoline] )
+    )
 
   def getWip = fieldParser( s => (s,s) )
   def endPartialField( successor: Option[PartialField] ) = fieldParser(
@@ -101,7 +111,7 @@ object Field {
 
   def fail[A]( msg: String , lineNum: Int ) =
     EitherT.left[FieldParserState,(String,Int),A](
-      State( s => (s,(msg,lineNum)) )
+      StateT( s => (s,(msg,lineNum)).point[Free.Trampoline] )
     )
 
   val paddingRe    = """^\s+$""".r
