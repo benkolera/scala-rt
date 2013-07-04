@@ -12,26 +12,28 @@ case class Field( name: String , value: String )
 
 object Field {
 
+  import Free.Trampoline
+
   def parseFields( lines: List[String] ):Parser[List[Field]] = {
+    import Trampoline.{suspend,done}
+
     val result = (lines ++ List("")).zipWithIndex.foldLeft(
       List[Field]().point[FieldParser]
     )(
-      (acc,lineWNum) => EitherT[FieldParserState,(String,Int),List[Field]](
-        StateT[Free.Trampoline,Option[PartialField],(String,Int) \/ List[Field]](
+      (acc,lineWNum) => {
+        val (line,lineNum) = lineWNum
+        makeFieldParser(
           s => for{
-            outTuple     <- Free.suspend( acc.run(s) )
-            consumeTuple <- Free.suspend( consumeLine( lineWNum._2 , lineWNum._1 ).run(outTuple._1) )
-            out          <- Free.return_[Function0,(String,Int) \/ List[Field]](
-              outTuple._2.flatMap( outList =>
-                consumeTuple._2.map{
-                  case None    => outList
-                  case Some(f) => f :: outList
-                }
+            accState <- suspend( acc.run(s) )
+            newState <- suspend( consumeLine(lineNum , line).run(accState._1) )
+            out      <- done(
+              accState._2.flatMap( accList =>
+                newState._2.map( _.map( _ :: accList ).getOrElse( accList ) )
               )
             )
-          } yield (consumeTuple._1 , out )
+          } yield (newState._1 , out )
         )
-      )
+      }
     ).run(None).run._2
 
     EitherT(
@@ -97,10 +99,18 @@ object Field {
   type FieldParserState[+A] = StateT[Free.Trampoline,Option[PartialField],A]
   type FieldParser[+A] = EitherT[FieldParserState,(String,Int),A]
 
+  //There has got to be a better way to get these types out of the way.
+  def makeFieldParser[A](
+    s: (Option[PartialField] => Trampoline[(Option[PartialField],(String,Int) \/ A)])
+  ) = {
+    EitherT[FieldParserState,(String,Int),A]( StateT( s ) )
+  }
+
   def fieldParser[A](s: (Option[PartialField] => (Option[PartialField],A))) =
-    EitherT.right[FieldParserState,(String,Int),A](
-      StateT( newState => s(newState).point[Free.Trampoline] )
-    )
+    makeFieldParser( newState => s(newState).point[Free.Trampoline].map(
+      t => t._1 -> \/-(t._2)
+    ))
+
 
   def getWip = fieldParser( s => (s,s) )
   def endPartialField( successor: Option[PartialField] ) = fieldParser(
