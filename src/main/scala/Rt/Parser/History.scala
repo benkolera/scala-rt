@@ -6,7 +6,6 @@ import std.list._
 import syntax.applicative._
 import syntax.traverse._
 import com.github.nscala_time.time.Imports._
-import scala.annotation.tailrec
 
 case class AttachmentInfo(
   id: Int,
@@ -168,22 +167,8 @@ case class Told(
 
 object History {
 
-  val historySeparator = "--"
-  val attachRe = """(.+?) \((\d+(?:\.\d+)?)([bkmg])\)""".r
 
-  def splitHistories( lines: List[String] ) = {
-    type Output = List[List[String]]
-    @tailrec
-    def hlpr( lines: List[String] , out: Output ):Output =
-      lines match {
-        case Nil => out.reverse
-        case ls  => {
-          val (history,rest) = ls.span( _ != historySeparator )
-          hlpr( rest.dropWhile( _ == historySeparator ) , history :: out )
-        }
-      }
-    hlpr( lines , Nil )
-  }
+  val attachRe = """(.+?) \((\d+(?:\.\d+)?)([bkmg])\)""".r
 
   val constructorMap = Map(
     "EmailRecord" -> emailRecordConstructor _ ,
@@ -495,7 +480,7 @@ object History {
 
   def parseHistory( responseStr: String ):Parser[List[History]] = {
     parseResponse( responseStr.split("\n").toList ).flatMap( lines =>
-      splitHistories( lines ).map( historyLines =>
+      splitMultipart( lines ).map( historyLines =>
         Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
           val extInt      = Field.extractFieldInt( fieldMap )
           val extString   = Field.extractString( fieldMap )

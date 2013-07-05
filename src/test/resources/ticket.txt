@@ -4,12 +4,12 @@ id: ticket/962663
 Queue: dev.support
 Owner: Nobody
 Creator: linda
-Subject: (GJR) FW: prepaid notifications and plan limit
+Subject: Test Email 1
 Status: open
 Priority: 100
 InitialPriority: 100
 FinalPriority: 100
-Requestors: Gregory.Clay@iseek.com.au, linda@iseek.com.au
+Requestors: test@test.com , test2@test.com
 Cc:
 AdminCc:
 Created: 2013-06-07 15:35:28

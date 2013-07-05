@@ -1,7 +1,8 @@
- package Rt.Parser
+package Rt.Parser
 
 import org.specs2._
 import scalaz._
+import Rt.QueryResult
 
 object QueryParserSpec extends mutable.Specification {
   "The Query Response Parser" should {

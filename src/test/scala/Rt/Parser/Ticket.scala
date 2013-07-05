@@ -20,12 +20,12 @@ object TicketParserSpec extends mutable.Specification {
       val expectedTicket = Rt.Ticket(
         id = 962663,
         queue = "dev.support",
-        subject = "(GJR) FW: prepaid notifications and plan limit",
+        subject = "Test Email 1",
         status = "open",
         people = Rt.TicketPeople(
           owner = None:Option[String],
           creator = "linda",
-          requestors = List("Gregory.Clay@iseek.com.au","linda@iseek.com.au"),
+          requestors = List("test@test.com","test2@test.com"),
           ccs = List[String](),
           adminCcs = List[String]()
         ),
@@ -65,5 +65,16 @@ object TicketParserSpec extends mutable.Specification {
       ticketDisj.toOption.get.toString must_==( expectedTicket.toString )
 
     }
+    "Parse some tickets" in {
+
+      val ticketDisj = Ticket.parseTickets(
+        Source.fromURL(getClass.getResource("/tickets.txt")).mkString
+      ).run
+
+      ticketDisj.map( _.length ) must_==(\/-(3))
+      ticketDisj.map( _.map(_.id) ) must_==(\/-(List(1337,1338,1339)))
+
+    }
   }
+
 }

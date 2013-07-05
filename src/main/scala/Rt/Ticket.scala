@@ -115,13 +115,16 @@ object Ticket {
     } yield hist
   }
 
-  def query(query:String)(
+  def query(query:String,orderBy:Option[String])(
     implicit m:Monad[Future]
-  ) = {
+  ):RtM[List[Ticket]] = {
+    val queryMap = ("query",query) :: ("format","l") ::
+      orderBy.map( o => List("orderBy" -> o) ).getOrElse(Nil)
+
     for {
-      req  <- rtApi.map( _ / "search" / "ticket" << Map("query" -> query) )
+      req  <- rtApi.map( _ / "search" / "ticket" << queryMap )
       body <- callApi( req )
-      res  <- liftParseError(Parser.Query.parseQueryResponse(body))
+      res  <- liftParseError(Parser.Ticket.parseTickets(body))
     } yield res
   }
 

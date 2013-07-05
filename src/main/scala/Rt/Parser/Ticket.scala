@@ -2,11 +2,11 @@ package Rt.Parser
 
 import scalaz._
 import syntax.applicative._
+import syntax.traverse._
 import std.option._
+import std.list._
 import com.github.nscala_time.time.Imports._
 import scala.util.Try
-
-
 
 object Ticket {
 
@@ -89,10 +89,23 @@ object Ticket {
   }
 
   def parseTicket( responseStr: String ):Parser[Rt.Ticket] = {
+    parseResponse( responseStr.split("\n").toList ).flatMap(
+      parseSingleTicket _
+    )
+  }
+
+
+
+  def parseTickets( responseStr: String ):Parser[List[Rt.Ticket]] = {
     parseResponse( responseStr.split("\n").toList ).flatMap( lines =>
-      Field.parseFieldMap( lines ).flatMap( fieldMap => {
-        (
-          Field.extractField(fieldMap)("id").flatMap(extractTicketId) |@|
+      splitMultipart( lines ).map( parseSingleTicket _ ).sequenceU
+    )
+  }
+
+  private def parseSingleTicket( lines: List[String] ) = {
+    Field.parseFieldMap( lines ).flatMap( fieldMap => {
+      (
+        Field.extractField(fieldMap)("id").flatMap(extractTicketId) |@|
           Field.extractField(fieldMap)("Queue") |@|
           Field.extractField(fieldMap)("Subject") |@|
           Field.extractField(fieldMap)("Status") |@|
@@ -101,8 +114,8 @@ object Ticket {
           extractTicketDates( fieldMap ) |@|
           extractTicketEffort( fieldMap ) |@|
           extractCustomFields( fieldMap ).point[Parser]
-        ){ Rt.Ticket.apply _ }
-      })
-    )
+      ){ Rt.Ticket.apply _ }
+    })
   }
+
 }

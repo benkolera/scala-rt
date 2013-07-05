@@ -2,6 +2,7 @@ package Rt
 import scalaz._
 import syntax.monad._
 import scala.util.matching.Regex
+import scala.annotation.tailrec
 
 package object Parser {
 
@@ -38,6 +39,22 @@ package object Parser {
         BadResponse(responseLines.mkString("\n"))
       )
     }
+  }
+
+  val multipartSeparator = "--"
+
+  private[Parser] def splitMultipart( lines: List[String] ) = {
+    type Output = List[List[String]]
+    @tailrec
+    def hlpr( lines: List[String] , out: Output ):Output =
+      lines match {
+        case Nil => out.reverse
+        case ls  => {
+          val (history,rest) = ls.span( _ != multipartSeparator )
+          hlpr( rest.dropWhile( _ == multipartSeparator ) , history :: out )
+        }
+      }
+    hlpr( lines , Nil )
   }
 
   def expectString( s:String , body:String ): Parser[Unit] = {
