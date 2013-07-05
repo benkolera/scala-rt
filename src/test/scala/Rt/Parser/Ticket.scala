@@ -56,13 +56,8 @@ object TicketParserSpec extends mutable.Specification {
           Rt.CustomField.tuple("Progress","")
         )
       )
-
-      ticketDisj.isRight must_==(true)
-      //Hack the test to make this work for now. Was getting a:
-      //Values have the same string representation but possibly different types
-      //but I can't see how it could be a different type as I took the
-      //disjunction,options and datetimes out of the equation...
-      ticketDisj.toOption.get.toString must_==( expectedTicket.toString )
+      //It needs the toStrings for some reason. :(
+      ticketDisj.map(_.toString) must_==( \/-(expectedTicket.toString) )
 
     }
     "Parse some tickets" in {
