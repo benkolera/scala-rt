@@ -88,18 +88,21 @@ object Ticket {
     ))
   }
 
-  def parseTicket( responseStr: String ):Parser[Rt.Ticket] = {
-    parseResponse( responseStr.split("\n").toList ).flatMap(
-      parseSingleTicket _
-    )
+  val ticketNotFoundRe = """# Ticket \d+ does not exist.""".r
+  def parseTicket( responseStr: String ):Parser[Option[Rt.Ticket]] = {
+    parseResponse( responseStr.split("\n").toList ).flatMap{
+      case ticketNotFoundRe()::ls => None.point[Parser]
+      case ls                     => parseSingleTicket( ls ).map( Some(_) )
+    }
   }
 
 
-
+  val ticketsEmptyRe = """No matching results""".r
   def parseTickets( responseStr: String ):Parser[List[Rt.Ticket]] = {
-    parseResponse( responseStr.split("\n").toList ).flatMap( lines =>
-      splitMultipart( lines ).map( parseSingleTicket _ ).sequenceU
-    )
+    parseResponse( responseStr.split("\n").toList ).flatMap{
+      case ticketsEmptyRe()::ls => Nil.point[Parser]
+      case lines => splitMultipart( lines ).map( parseSingleTicket _ ).sequenceU
+    }
   }
 
   private def parseSingleTicket( lines: List[String] ) = {

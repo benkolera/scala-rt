@@ -57,11 +57,17 @@ object TicketParserSpec extends mutable.Specification {
         )
       )
       //It needs the toStrings for some reason. :(
-      ticketDisj.map(_.toString) must_==( \/-(expectedTicket.toString) )
+      ticketDisj.map(_.toString) must_==( \/-(Some(expectedTicket).toString) )
 
     }
-    "Parse some tickets" in {
+    "Not die if no ticket was found" in {
+      val ticketDisj = Ticket.parseTicket(
+        "RT/4.0.12 200 Ok\n\n# Ticket 198210010 does not exist."
+      ).run
 
+      ticketDisj must_==(\/-(None))
+    }
+    "Parse some tickets" in {
       val ticketDisj = Ticket.parseTickets(
         Source.fromURL(getClass.getResource("/tickets.txt")).mkString
       ).run
@@ -69,6 +75,13 @@ object TicketParserSpec extends mutable.Specification {
       ticketDisj.map( _.length ) must_==(\/-(3))
       ticketDisj.map( _.map(_.id) ) must_==(\/-(List(1337,1338,1339)))
 
+    }
+    "Not die if no tickets were returned" in {
+      val ticketDisj = Ticket.parseTickets(
+        "RT/4.0.12 200 Ok\n\nNo matching results"
+      ).run
+
+      ticketDisj.map( _.length ) must_==(\/-(0))
     }
   }
 

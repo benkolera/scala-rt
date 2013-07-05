@@ -99,7 +99,7 @@ object Ticket {
   import scala.collection.JavaConversions._
   import scala.util.matching.Regex
 
-  def show(id:Int)( implicit m:Monad[Future] ) = {
+  def show(id:Int)( implicit m:Monad[Future] ):RtM[Option[Ticket]] = {
     for {
       req  <- rtApi.map( _ / "ticket" / id / "show" )
       body <- callApi( req )
