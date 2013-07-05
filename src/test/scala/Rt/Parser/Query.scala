@@ -15,6 +15,7 @@ object QueryParserSpec extends mutable.Specification {
       Query.parseQueryResponse(
         """RT/4.0.14 200 Ok
         |
+        |No matching results.
         |""".stripMargin
       ).run must beEqualTo(\/-(Nil))
     }
