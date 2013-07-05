@@ -78,7 +78,7 @@ object TicketParserSpec extends mutable.Specification {
     }
     "Not die if no tickets were returned" in {
       val ticketDisj = Ticket.parseTickets(
-        "RT/4.0.12 200 Ok\n\nNo matching results"
+        "RT/4.0.12 200 Ok\n\nNo matching results."
       ).run
 
       ticketDisj.map( _.length ) must_==(\/-(0))

@@ -97,7 +97,7 @@ object Ticket {
   }
 
 
-  val ticketsEmptyRe = """No matching results""".r
+  val ticketsEmptyRe = """No matching results.""".r
   def parseTickets( responseStr: String ):Parser[List[Rt.Ticket]] = {
     parseResponse( responseStr.split("\n").toList ).flatMap{
       case ticketsEmptyRe()::ls => Nil.point[Parser]
