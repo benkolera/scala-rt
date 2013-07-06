@@ -23,20 +23,14 @@ For example
 ```scala
 import Rt.QueryBuilder._ , .Implicits._
 val program = Rt.login.flatMap(
-  _ => Rt.Tickets.query(
-    Queue.eqs("dev") AND Status.in("new","open") AND (
-      CF("SupplierCost").gt(50) OR Owner.eqs("testman")
-    )
-  )
+  _ => Rt.Tickets.query( Queue.eqs("dev") AND Status.in("new","open") )
 )
 
 //OR (they are both the same)
 
 val program = for {
   _       <- Rt.login
-  tickets <- Rt.Tickets.Query( Queue.eqs("dev") AND Status.in("new","open") AND (
-               CF("SupplierCost").gt(50) OR Owner.eqs("testman")
-             )
+  tickets <- Rt.Tickets.Query( Queue.eqs("dev") AND Status.in("new","open") )
 } yield tickets
 
 import concurrent.ExecutionContext.Implicits.global
