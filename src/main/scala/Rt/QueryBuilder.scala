@@ -14,7 +14,7 @@ object QueryBuilder {
   case class And( e1: Query , e2: Query , rest: Query* ) extends Query
   case class Or( e1: Query , e2: Query , rest: Query* ) extends Query
   case class Compare( id: Identifier , c: Comparator , v: Value ) extends Query
-  case class SetCompare(id:Identifier,c:SetComparator,vs:List[Value]) extends Query
+  case class SetCompare(id:Identifier,c:SetComparator,vs:Seq[Value]) extends Query
 
   sealed trait Identifier {
     def gt( v:Value ) = Compare( this , Gt , v )
@@ -23,8 +23,8 @@ object QueryBuilder {
     def neq( v:Value ) = Compare( this , Ne , v )
     def matches( v:StringValue ) = Compare( this , Matches , v )
     def notMatches( v:StringValue ) = Compare( this , DoesntMatch , v )
-    def in( l: Value* ) = SetCompare( this , In , l.toList )
-    def notIn( l: Value* ) = SetCompare( this , NotIn , l.toList )
+    def in( l: Value* ) = SetCompare( this , In , l )
+    def notIn( l: Value* ) = SetCompare( this , NotIn , l)
   }
   case object TicketId extends Identifier
   case object Queue extends Identifier
@@ -76,6 +76,12 @@ object QueryBuilder {
     implicit def longToValue( l: Long ) = LongValue(l)
     implicit def doubleToValue( d: Double ) = DoubleValue(d)
     implicit def dateTimeToValue( dt: DateTime ) = DateTimeValue(dt)
+    //Well now, this is a bit shit... Gotta be a better way.
+    implicit def stringSeqToValues( ss: Seq[String] ) = ss.map(StringValue(_))
+    implicit def intSeqToValues( is: Seq[Int] ) = is.map(IntValue(_))
+    implicit def longSeqToValues( ls: Seq[Long] ) = ls.map(LongValue(_))
+    implicit def doubleSeqToValues( ds: Seq[Double] ) = ds.map(DoubleValue(_))
+    implicit def dateTimeSeqToValues( dts: Seq[DateTime] ) = dts.map(DateTimeValue(_))
   }
 
   val dtf = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" )
@@ -94,7 +100,7 @@ object QueryBuilder {
     case Compare(id,cmp,v)     => compareCord( id, cmp , v )
   }
 
-  def expListCord( sep:String, er: List[Query] ) = {
+  def expListCord( sep:String, er: Seq[Query] ) = {
     val spacedSep = Cord.fromStrings( Seq(" " , sep , " ") )
     Cord("(") ++
     Cord.mkCord( spacedSep, er.map(buildQueryCord _) :_* ) ++
@@ -107,7 +113,7 @@ object QueryBuilder {
     )
   }
 
-  def setCompareCord( id: Identifier, c: SetComparator, vs: List[Value] ) =
+  def setCompareCord( id: Identifier, c: SetComparator, vs: Seq[Value] ) =
     c match {
       case In    => expListCord( "OR" , vs.map( Compare(id,Eq,_) ) )
       case NotIn => expListCord( "AND" , vs.map( Compare(id,Ne,_) ) )
