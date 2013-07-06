@@ -6,6 +6,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeZone.UTC
 
 object QueryBuilder {
+
   sealed trait Query {
     def AND ( q2: Query ) = And( this , q2 )
     def OR  ( q2: Query ) = Or( this , q2 )
@@ -13,6 +14,7 @@ object QueryBuilder {
   case class And( e1: Query , e2: Query , rest: Query* ) extends Query
   case class Or( e1: Query , e2: Query , rest: Query* ) extends Query
   case class Compare( id: Identifier , c: Comparator , v: Value ) extends Query
+  case class SetCompare(id:Identifier,c:SetComparator,vs:List[Value]) extends Query
 
   sealed trait Identifier {
     def gt( v:Value ) = Compare( this , Gt , v )
@@ -21,6 +23,8 @@ object QueryBuilder {
     def neq( v:Value ) = Compare( this , Ne , v )
     def matches( v:StringValue ) = Compare( this , Matches , v )
     def notMatches( v:StringValue ) = Compare( this , DoesntMatch , v )
+    def in( l: Value* ) = SetCompare( this , In , l.toList )
+    def notIn( l: Value* ) = SetCompare( this , NotIn , l.toList )
   }
   case object TicketId extends Identifier
   case object Queue extends Identifier
@@ -56,6 +60,10 @@ object QueryBuilder {
   case object Matches extends Comparator
   case object DoesntMatch extends Comparator
 
+  sealed trait SetComparator
+  case object In extends SetComparator
+  case object NotIn extends SetComparator
+
   sealed trait OrderBy
   case class Asc( id: Identifier ) extends OrderBy
   case class Desc( id: Identifier ) extends OrderBy
@@ -80,19 +88,30 @@ object QueryBuilder {
 
   // This isn't tail recursive, but this should be OK
   def buildQueryCord( q:Query ):Cord = q match {
-    case And(e1,e2,er @_*) => expListCord( "AND",e1,e2,er:_* )
-    case Or(e1,e2,er @_*)  => expListCord( "OR" ,e1,e2,er:_* )
-    case Compare(id,cmp,v) => Cord.mkCord(
-      Cord(" "), idCord(id) , cmpCord(cmp) , valueCord(v)
+    case And(e1,e2,er @_*)     => expListCord( "AND",e1::e2::er.toList )
+    case Or(e1,e2,er @_*)      => expListCord( "OR" ,e1::e2::er.toList )
+    case SetCompare(id,cmp,vs) => setCompareCord( id , cmp , vs )
+    case Compare(id,cmp,v)     => compareCord( id, cmp , v )
+  }
+
+  def expListCord( sep:String, er: List[Query] ) = {
+    val spacedSep = Cord.fromStrings( Seq(" " , sep , " ") )
+    Cord("(") ++
+    Cord.mkCord( spacedSep, er.map(buildQueryCord _) :_* ) ++
+    Cord(")")
+  }
+
+  def compareCord( id: Identifier, cmp: Comparator, v: Value ) = {
+    Cord.mkCord(
+      Cord(" "), idCord(id) , comparatorCord(cmp) , valueCord(v)
     )
   }
 
-  def expListCord( sep:String, e1: Query, e2:Query, er: Query* ) = {
-    val spacedSep = Cord.fromStrings( Seq(" " , sep , " ") )
-    Cord("(") ++
-    Cord.mkCord( spacedSep, (e1::e2::er.toList).map(buildQueryCord _) :_* ) ++
-    Cord(")")
-  }
+  def setCompareCord( id: Identifier, c: SetComparator, vs: List[Value] ) =
+    c match {
+      case In    => expListCord( "OR" , vs.map( Compare(id,Eq,_) ) )
+      case NotIn => expListCord( "AND" , vs.map( Compare(id,Ne,_) ) )
+    }
 
   def idCord( id:Identifier ) = Cord(id match {
     case CF( name ) => s"CF.{$name}"
@@ -100,7 +119,7 @@ object QueryBuilder {
     case _          => id.toString //Probably going to regret this...
   })
 
-  def cmpCord( cmp:Comparator ) = Cord(cmp match {
+  def comparatorCord( cmp:Comparator ) = Cord(cmp match {
     case Eq          => "="
     case Ne          => "!="
     case Gt          => ">"

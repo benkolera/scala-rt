@@ -24,7 +24,9 @@ For example
 import Rt.QueryBuilder._ , .Implicits._
 val program = Rt.login.flatMap(
   _ => Rt.Tickets.query(
-    Queue.eqs("dev") AND (Status.eqs("new") OR Status.eqs("open"))
+    Queue.eqs("dev") AND Status.in("new","open") AND (
+      CF("Account").eqs("MyAccount") OR Owner.eqs("testman")
+    )
   )
 )
 
@@ -32,7 +34,9 @@ val program = Rt.login.flatMap(
 
 val program = for {
   _       <- Rt.login
-  tickets <- Rt.Tickets.Query( Queue.eqs("dev") AND (Status.eqs("new") OR Status.eqs("open")) )
+  tickets <- Rt.Tickets.Query( Queue.eqs("dev") AND Status.in("new","open") AND (
+               CF("Account").eqs("MyAccount") OR Owner.eqs("testman")
+             )
 } yield tickets
 
 import concurrent.ExecutionContext.Implicits.global

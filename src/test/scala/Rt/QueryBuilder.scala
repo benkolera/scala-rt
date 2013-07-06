@@ -47,6 +47,20 @@ object QueryBuilderSpec extends mutable.Specification {
       val s = buildQueryString( And(q1,Or(q2,q3)) )
       s must_== ("(Queue = 'dev' AND (Status = 'open' OR Status = 'new'))")
     }
+    "Print out an 'in' comparison" in {
+      val q1 = SetCompare(
+        Status, In , List( StringValue("open") , StringValue("new") )
+      )
+      val s = buildQueryString( q1 )
+      s must_== ("(Status = 'open' OR Status = 'new')")
+    }
+    "Print out an 'not in' comparison" in {
+      val q1 = SetCompare(
+        Status, NotIn , List( StringValue("closed") , StringValue("rejected") )
+      )
+      val s = buildQueryString( q1 )
+      s must_== ("(Status != 'closed' AND Status != 'rejected')")
+    }
   }
 
   "The query Implicit conversions" should {
@@ -88,9 +102,9 @@ object QueryBuilderSpec extends mutable.Specification {
       )
     }
     "Build nested queries like a goddamn champion" in {
-      val q = Queue.eqs("dev") AND (Status.eqs("open") OR Status.eqs("new") )
+      val q = Queue.in("dev","dev.projects") AND (Status.eqs("open") OR Status.eqs("new") )
       buildQueryString( q ) must_== (
-        "(Queue = 'dev' AND (Status = 'open' OR Status = 'new'))"
+        "((Queue = 'dev' OR Queue = 'dev.projects') AND (Status = 'open' OR Status = 'new'))"
       )
     }
   }
