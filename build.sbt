@@ -6,6 +6,8 @@ version := "0.1.0-SNAPSHOT"
 
 scalaVersion := "2.10.1"
 
+scalacOptions ++= Seq("-feature","-deprecation")
+
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.10.0",
   "org.clapper" %% "avsl" % "1.0.1",

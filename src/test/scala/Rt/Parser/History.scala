@@ -123,7 +123,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Reminder 'REMINDER TO CLOSE THIS!' completed by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,44,01,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,7,44,1,DateTimeZone.UTC),
         reminderId = 968313
       ))
       histories(4) must_==(Correspond(
@@ -221,7 +221,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Initiator Customer changed to Automatic System Report by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,25,1,05,45,DateTimeZone.UTC),
+        created = new DateTime(2013,6,25,1,5,45,DateTimeZone.UTC),
         fieldId = 58,
         oldValue = "Customer",
         newValue = "Automatic System Report"

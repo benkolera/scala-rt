@@ -98,6 +98,7 @@ object Ticket {
   import scala.concurrent.Future
   import scala.collection.JavaConversions._
   import scala.util.matching.Regex
+  import QueryBuilder.{Query,OrderBy}
 
   def show(id:Int)( implicit m:Monad[Future] ):RtM[Option[Ticket]] = {
     for {
@@ -115,7 +116,16 @@ object Ticket {
     } yield hist
   }
 
-  def query(query:String,orderBy:Option[String])(
+  def query(query:Query,orderBy:Option[OrderBy])(
+    implicit m:Monad[Future]
+  ) = {
+    queryRaw(
+      QueryBuilder.buildQueryString( query ),
+      orderBy.map( QueryBuilder.buildOrderByString( _ ) )
+    )
+  }
+
+  def queryRaw(query:String,orderBy:Option[String])(
     implicit m:Monad[Future]
   ):RtM[List[Ticket]] = {
     val queryMap = ("query",query) :: ("format","l") ::

@@ -15,8 +15,18 @@ object Query {
   import scala.concurrent.Future
   import scala.collection.JavaConversions._
   import scala.util.matching.Regex
+  import QueryBuilder.{Query,OrderBy}
 
-  def query(query:String,orderBy:Option[String])(
+  def query(query:Query,orderBy:Option[OrderBy])(
+    implicit m:Monad[Future]
+  ) = {
+    queryRaw(
+      QueryBuilder.buildQueryString( query ),
+      orderBy.map( QueryBuilder.buildOrderByString( _ ) )
+    )
+  }
+
+  def queryRaw(query:String,orderBy:Option[String])(
     implicit m:Monad[Future]
   ) = {
     val queryMap = ("query",query) ::

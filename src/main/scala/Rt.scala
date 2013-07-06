@@ -13,8 +13,9 @@ import syntax.monad._
 import scalaz.contrib.std.scalaFuture._
 import std.list._
 import std.either._
-import scala.concurrent.{ExecutionContext,Future}
-import scala.collection.JavaConversions._
+import concurrent.{ExecutionContext,Future}
+import collection.JavaConversions._
+import language.higherKinds
 
 package object Rt {
 
