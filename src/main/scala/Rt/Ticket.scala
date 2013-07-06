@@ -104,7 +104,8 @@ object Ticket {
     for {
       req  <- rtApi.map( _ / "ticket" / id / "show" )
       body <- callApi( req )
-      t    <- liftParseError(Parser.Ticket.parseTicket(body))
+      dtf  <- getDtf
+      t    <- liftParseError(Parser.Ticket.parseTicket(dtf,body))
     } yield t
   }
 
@@ -112,7 +113,8 @@ object Ticket {
     for {
       req  <- rtApi.map( _ / "ticket" / id / "history" <<? Map("format"->"l") )
       body <- callApi( req )
-      hist <- liftParseError(Parser.History.parseHistory(body))
+      dtf  <- getDtf
+      hist <- liftParseError(Parser.History.parseHistory(dtf,body))
     } yield hist
   }
 
@@ -134,7 +136,8 @@ object Ticket {
     for {
       req  <- rtApi.map( _ / "search" / "ticket" << queryMap )
       body <- callApi( req )
-      res  <- liftParseError(Parser.Ticket.parseTickets(body))
+      dtf  <- getDtf
+      res  <- liftParseError(Parser.Ticket.parseTickets(dtf,body))
     } yield res
   }
 

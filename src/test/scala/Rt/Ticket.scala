@@ -8,7 +8,7 @@ import dispatch._
 import com.ning.http.client.Response
 import scala.concurrent.{Await,Future}
 import scala.concurrent.duration._
-
+import org.joda.time.format.DateTimeFormat
 
 object TicketSpec extends mutable.Specification with Mockito {
 
@@ -22,6 +22,7 @@ object TicketSpec extends mutable.Specification with Mockito {
         "username",
         "password",
         "rt.test.com",
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"),
         scala.concurrent.ExecutionContext.global,
         req => Future( http(req) ).either
       ) ,

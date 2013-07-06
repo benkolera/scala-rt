@@ -7,10 +7,10 @@ import std.option._
 import std.list._
 import com.github.nscala_time.time.Imports._
 import scala.util.Try
+import org.joda.time.format.DateTimeFormatter
 
 object Ticket {
 
-  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
   val listRe = """\s*,\s*""".r
   def splitList( s:String ) = listRe.split( s ).toList
 
@@ -37,16 +37,16 @@ object Ticket {
   }
 
   def extractTicketDates(
-    m: Map[String,String]
+    dtf: DateTimeFormatter, m: Map[String,String]
   ): Parser[Rt.TicketDates] = {
     (
-      Field.extractFieldDateTime(m)("Created") |@|
-      Field.extractFieldDateTime(m)("LastUpdated") |@|
-      Field.extractFieldOptDateTime(m)("Starts") |@|
-      Field.extractFieldOptDateTime(m)("Started") |@|
-      Field.extractFieldOptDateTime(m)("Due") |@|
-      Field.extractFieldOptDateTime(m)("Resolved") |@|
-      Field.extractFieldOptDateTime(m)("Told")
+      Field.extractFieldDateTime(dtf)(m)("Created") |@|
+      Field.extractFieldDateTime(dtf)(m)("LastUpdated") |@|
+      Field.extractFieldOptDateTime(dtf)(m)("Starts") |@|
+      Field.extractFieldOptDateTime(dtf)(m)("Started") |@|
+      Field.extractFieldOptDateTime(dtf)(m)("Due") |@|
+      Field.extractFieldOptDateTime(dtf)(m)("Resolved") |@|
+      Field.extractFieldOptDateTime(dtf)(m)("Told")
     ){ Rt.TicketDates.apply _ }
   }
 
@@ -89,23 +89,27 @@ object Ticket {
   }
 
   val ticketNotFoundRe = """# Ticket \d+ does not exist.""".r
-  def parseTicket( responseStr: String ):Parser[Option[Rt.Ticket]] = {
+  def parseTicket(
+    dtf: DateTimeFormatter , responseStr: String
+  ):Parser[Option[Rt.Ticket]] = {
     parseResponse( responseStr.split("\n").toList ).flatMap{
       case ticketNotFoundRe()::ls => None.point[Parser]
-      case ls                     => parseSingleTicket( ls ).map( Some(_) )
+      case ls                     => parseSingleTicket(dtf)(ls).map( Some(_) )
     }
   }
 
 
   val ticketsEmptyRe = """No matching results.""".r
-  def parseTickets( responseStr: String ):Parser[List[Rt.Ticket]] = {
+  def parseTickets(
+    dtf: DateTimeFormatter , responseStr: String
+  ):Parser[List[Rt.Ticket]] = {
     parseResponse( responseStr.split("\n").toList ).flatMap{
       case ticketsEmptyRe()::ls => Nil.point[Parser]
-      case lines => splitMultipart( lines ).map( parseSingleTicket _ ).sequenceU
+      case lines => splitMultipart( lines ).map( parseSingleTicket(dtf) _ ).sequenceU
     }
   }
 
-  private def parseSingleTicket( lines: List[String] ) = {
+  private def parseSingleTicket(dtf: DateTimeFormatter)(lines: List[String]) = {
     Field.parseFieldMap( lines ).flatMap( fieldMap => {
       (
         Field.extractField(fieldMap)("id").flatMap(extractTicketId) |@|
@@ -114,7 +118,7 @@ object Ticket {
           Field.extractField(fieldMap)("Status") |@|
           extractTicketPeople( fieldMap ) |@|
           extractTicketPriority( fieldMap ) |@|
-          extractTicketDates( fieldMap ) |@|
+          extractTicketDates( dtf, fieldMap ) |@|
           extractTicketEffort( fieldMap ) |@|
           extractCustomFields( fieldMap ).point[Parser]
       ){ Rt.Ticket.apply _ }

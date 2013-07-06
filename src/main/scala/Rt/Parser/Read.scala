@@ -20,7 +20,7 @@ object Read {
   def readList(s:String): List[String] = {
     s.split(",").toList.map( _.trim )
   }
-  def readDateTimeFormat(format: DateTimeFormatter) = {
+  def readDateTime(format: DateTimeFormatter) = {
     val utcFormat = format.withZone(UTC)
     def read(s:String) = \/.fromTryCatch(
       utcFormat.parseDateTime(s)
@@ -28,14 +28,10 @@ object Read {
     read _
   }
 
-  def readOptDateTimeFormat(format: DateTimeFormatter)(s:String) = s match {
+  def readOptDateTime(format: DateTimeFormatter)(s:String) = s match {
     case ""        => \/-(None)
     case "Not set" => \/-(None)
-    case str       => readDateTimeFormat(format)(str).map(Some(_))
+    case str       => readDateTime(format)(str).map(Some(_))
   }
-
-  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
-  val readDateTime = readDateTimeFormat(dtf)
-  val readOptDateTime = readOptDateTimeFormat(dtf) _
 
 }

@@ -5,7 +5,7 @@ import syntax.traverse._
 import syntax.monad._
 import std.function._
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
 import org.joda.time.DateTimeZone.UTC
 
 case class Field( name: String , value: String )
@@ -60,8 +60,10 @@ object Field {
 
   val extractString = extractField _
   val extractFieldInt = extract( Read.readInt _ ) _
-  val extractFieldDateTime = extract( Read.readDateTime ) _
-  val extractFieldOptDateTime = extract( Read.readOptDateTime ) _
+  def extractFieldDateTime(dtf:DateTimeFormatter) =
+    extract( Read.readDateTime(dtf) ) _
+  def extractFieldOptDateTime(dtf:DateTimeFormatter) =
+    extract( Read.readOptDateTime(dtf) ) _
 
   def extractFieldFields( fieldMap: Map[String,String] )(
     fieldName: String

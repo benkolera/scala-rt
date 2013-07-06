@@ -8,13 +8,13 @@ import org.joda.time.DateTimeZone.UTC
 object TicketParserSpec extends mutable.Specification {
 
   import scala.io.Source
-  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
 
   "The Ticket Parser" should {
     "Parse a ticket" in {
 
       val ticketDisj = Ticket.parseTicket(
-        Source.fromURL(getClass.getResource("/ticket.txt")).mkString
+        dtf,Source.fromURL(getClass.getResource("/ticket.txt")).mkString
       ).run
 
       val expectedTicket = Rt.Ticket(
@@ -62,14 +62,14 @@ object TicketParserSpec extends mutable.Specification {
     }
     "Not die if no ticket was found" in {
       val ticketDisj = Ticket.parseTicket(
-        "RT/4.0.12 200 Ok\n\n# Ticket 198210010 does not exist."
+        dtf,"RT/4.0.12 200 Ok\n\n# Ticket 198210010 does not exist."
       ).run
 
       ticketDisj must_==(\/-(None))
     }
     "Parse some tickets" in {
       val ticketDisj = Ticket.parseTickets(
-        Source.fromURL(getClass.getResource("/tickets.txt")).mkString
+        dtf,Source.fromURL(getClass.getResource("/tickets.txt")).mkString
       ).run
 
       ticketDisj.map( _.length ) must_==(\/-(3))
@@ -78,7 +78,7 @@ object TicketParserSpec extends mutable.Specification {
     }
     "Not die if no tickets were returned" in {
       val ticketDisj = Ticket.parseTickets(
-        "RT/4.0.12 200 Ok\n\nNo matching results."
+        dtf,"RT/4.0.12 200 Ok\n\nNo matching results."
       ).run
 
       ticketDisj.map( _.length ) must_==(\/-(0))

@@ -3,16 +3,18 @@ package Rt.Parser
 import org.specs2._
 import scalaz._
 import org.joda.time.{DateTime,DateTimeZone}
+import org.joda.time.format.DateTimeFormat
 
 object HistoryParserSpec extends mutable.Specification {
 
   import scala.io.Source
+  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
 
   "The History Parser" should {
     "Parse a history with a single history" in {
 
       val historyDisj = History.parseHistory(
-        Source.fromURL(getClass.getResource("/historySingle.txt")).mkString
+        dtf,Source.fromURL(getClass.getResource("/historySingle.txt")).mkString
       ).run
 
       val expectedHistory = Create(
@@ -53,7 +55,7 @@ object HistoryParserSpec extends mutable.Specification {
     "Parse a history list" in {
 
       val historyDisj = History.parseHistory(
-        Source.fromURL(getClass.getResource("/history.txt")).mkString
+        dtf,Source.fromURL(getClass.getResource("/history.txt")).mkString
       ).run
 
       if(historyDisj.isLeft) {

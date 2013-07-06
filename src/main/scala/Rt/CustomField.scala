@@ -2,6 +2,7 @@ package Rt
 
 import scalaz._
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormatter
 import Parser.Read
 
 case class CustomFieldName( name: String )
@@ -12,8 +13,10 @@ object CustomFieldName {
 case class CustomFieldValue( val str: String ) {
   def toInt(): String \/ Int = Read.readInt( str )
   def toDouble(): String \/ Double = Read.readDouble( str )
-  def toDateTime(): String \/ DateTime = Read.readDateTime( str )
-  def toOptDateTime(): String \/ Option[DateTime] = Read.readOptDateTime( str )
+  def toDateTime(dtf:DateTimeFormatter): String \/ DateTime =
+    Read.readDateTime( dtf )( str )
+  def toOptDateTime(dtf:DateTimeFormatter): String \/ Option[DateTime] =
+    Read.readOptDateTime( dtf )( str )
 }
 
 

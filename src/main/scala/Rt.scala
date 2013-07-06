@@ -77,6 +77,9 @@ package object Rt {
     ps.foldLeft( req )( _.addBodyPart(_) ).setMethod("POST")
   }
 
+  private[Rt] def getDtf( implicit m:Monad[Future] ) =
+    getConfig.map( _.dateTimeFormatter )
+
   private[Rt] def liftParseError[A]( pOut: Parser.Parser[A] )(
     implicit m:Monad[Future]
   ): RtM[A] =
