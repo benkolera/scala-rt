@@ -20,7 +20,7 @@ the configuration that it needs to do its job.
 
 For example
 
-`
+```scala
 import Rt.QueryBuilder._ , .Implicits._
 val program = Rt.login.flatMap(
   _ => Rt.Tickets.query(
@@ -37,5 +37,5 @@ val program = for {
 
 import concurrent.ExecutionContext.Implicits.global
 val tickets r.run.run(Rt.Config("user","pass","rt.test.com"),Rt.emptyCookieJar)
-`
+```
 
