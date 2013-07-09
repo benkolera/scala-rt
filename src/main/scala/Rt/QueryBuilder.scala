@@ -37,7 +37,7 @@ object QueryBuilder {
   case object Due extends Identifier
   case object Starts extends Identifier
   case object Started extends Identifier
-  case object Closed extends Identifier
+  case object Resolved extends Identifier
   case object LastContacted extends Identifier
   case object LastUpdated extends Identifier
   case object Updated extends Identifier
