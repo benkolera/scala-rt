@@ -30,7 +30,7 @@ object Query {
     implicit m:Monad[Future]
   ) = {
     val queryMap = ("query",query) ::
-      orderBy.map( o => List("orderBy" -> o) ).getOrElse(Nil)
+      orderBy.map( o => List("orderby" -> o) ).getOrElse(Nil)
 
     for {
       req  <- rtApi.map( _ / "search" / "ticket" << queryMap )

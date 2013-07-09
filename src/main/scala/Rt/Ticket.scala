@@ -131,7 +131,7 @@ object Ticket {
     implicit m:Monad[Future]
   ):RtM[List[Ticket]] = {
     val queryMap = ("query",query) :: ("format","l") ::
-      orderBy.map( o => List("orderBy" -> o) ).getOrElse(Nil)
+      orderBy.map( o => List("orderby" -> o) ).getOrElse(Nil)
 
     for {
       req  <- rtApi.map( _ / "search" / "ticket" << queryMap )
