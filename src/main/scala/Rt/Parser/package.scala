@@ -6,15 +6,6 @@ import scala.annotation.tailrec
 
 package object Parser {
 
-  sealed trait ParserError
-  object AuthenticationRequired extends ParserError
-  case class BadResponse( response: String ) extends ParserError
-  case class ExpectationNotMet( expect: String, response: String ) extends ParserError
-  case class BadBodyLine( lines: List[String] , idx: Int, msg: String ) extends ParserError
-  case class MissingField( fieldName: String ) extends ParserError
-  case class InvalidField( fieldName: String , msg: String ) extends ParserError
-  case class UnknownHistoryType( historyType: String ) extends ParserError
-
   type Parser[+A] = EitherT[Scalaz.Id,ParserError,A]
 
   private[Parser] def parserFail[A]( err: ParserError ) =

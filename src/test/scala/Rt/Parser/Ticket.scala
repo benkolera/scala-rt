@@ -49,11 +49,18 @@ object TicketParserSpec extends mutable.Specification {
           timeLeft = 0
         ),
         customFields = Map(
-          Rt.CustomField.tuple("Cost Centre",""),
-          Rt.CustomField.tuple("Product",""),
-          Rt.CustomField.tuple("Development Work Type",""),
-          Rt.CustomField.tuple("Initiator",""),
-          Rt.CustomField.tuple("Progress","")
+          Rt.CustomField.tuple(
+            "Picklist",
+            "This is a picklist\nSo it gets indented like this"
+          ),
+          Rt.CustomField.tuple(
+            "Multi Line Customfield",
+            List(
+              "But this is a multiline thing",
+              "so it fucking gets indented with something",
+              " different just to be a goddamned pain in the ass."
+            ).mkString("\n")
+          )
         )
       )
       //It needs the toStrings for some reason. :(

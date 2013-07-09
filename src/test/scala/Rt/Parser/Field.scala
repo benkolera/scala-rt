@@ -42,6 +42,23 @@ object FieldParserSpec extends mutable.Specification {
         Field("FooBar","bar field\nsome more")
       )))
     }
+    //This is happening for multiline custom fields
+    "Should return a multiline field that is indented with 4 spaces" in {
+      Field.parseFields(List(
+        "CF.{Multi Line Custom Field}: This is a field",
+        "    That spans over multi lines",
+        "     but isn't indented how everything else is :("
+      )).run must beEqualTo(\/-(List(
+        Field(
+          "CF.{Multi Line Custom Field}",
+          List(
+            "This is a field",
+            "That spans over multi lines",
+            " but isn't indented how everything else is :("
+          ).mkString("\n")
+        )
+      )))
+    }
     "Should error if a field is followed with bad indent" in {
       Field.parseFields(List(
         "Fooo: This is a field",
@@ -50,7 +67,7 @@ object FieldParserSpec extends mutable.Specification {
       )).run must beEqualTo(-\/(BadBodyLine(
         List("Fooo: This is a field","      That spans over multi lines","bad field"),
         3,
-        "Line didn't start with a field or indent."
+        "Line of a multiline field didn't start with expected indent (\\s{6}(.*))."
       )))
     }
     "Should error if the payload doesn't start with a field" in {

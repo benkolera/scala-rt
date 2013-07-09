@@ -7,6 +7,7 @@ import std.function._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.DateTimeZone.UTC
+import scala.util.matching.Regex
 
 case class Field( name: String , value: String )
 
@@ -97,7 +98,11 @@ object Field {
     )
   }
 
-  case class PartialField( indent: Int, name: String, value: List[String])
+  case class PartialField(
+    indentRe: Option[Regex],
+    name: String,
+    value: List[String]
+  )
   type FieldParserState[+A] = StateT[Free.Trampoline,Option[PartialField],A]
   type FieldParser[+A] = EitherT[FieldParserState,(String,Int),A]
 
@@ -121,24 +126,39 @@ object Field {
     }
   )
 
+  def set( pf: Option[PartialField] ) = {
+    fieldParser( s => (pf,()) )
+  }
+
   def fail[A]( msg: String , lineNum: Int ) =
     EitherT.left[FieldParserState,(String,Int),A](
       StateT( s => (s,(msg,lineNum)).point[Free.Trampoline] )
     )
 
-  val paddingRe    = """^\s+$""".r
+  val paddingRe    = """(\s+).*""".r
 
   def appendLineToCurrent( lineNum: Int , line: String ):FieldParser[Unit] = {
     getWip.flatMap{
       case None => fail("No field found before response body.",lineNum)
-      case Some(p) => {
-        val (padding,value) = line.splitAt(p.indent)
-        padding match {
-          case paddingRe() => fieldParser(
-            s => (Some(p.copy( value = value :: p.value )),())
-          )
-          case _  =>  fail("Line didn't start with a field or indent.",lineNum)
+      case Some(pf@PartialField(None,name,_)) => line match {
+        case paddingRe(padding) => {
+          val maxIndent = Math.min( padding.length, name.length + 2 )
+          val re = s"\\s{${maxIndent}}(.*)".r
+          val re(rest) = line
+          set( Some(pf.copy( indentRe = Some(re), value = rest :: pf.value ) ) )
         }
+        case _ => fail(
+          s"2nd field line didn't start with a indent.",lineNum
+        )
+      }
+      case Some(pf@PartialField(Some(indentRe),_,_)) => line match {
+        case indentRe(rest) => set(
+          Some(pf.copy( value = rest :: pf.value ))
+        )
+        case _ => fail(
+          s"Line of a multiline field didn't start with expected indent ($indentRe).",
+          lineNum
+        )
       }
     }
   }
@@ -153,7 +173,7 @@ object Field {
   def consumeLine( lineNum: Int, line: String ):FieldParser[Option[Field]] = {
     line match {
       case commentRe()             => consumeNoop()
-      case fieldStartRe(name,rest) => endPartialField(Some(PartialField(name.size + 2,name,List(rest))))
+      case fieldStartRe(name,rest) => endPartialField(Some(PartialField(None,name,List(rest))))
       case ""                      => endPartialField(None)
       case _                       => appendLineToCurrent( lineNum, line ).map( _ => None )
     }

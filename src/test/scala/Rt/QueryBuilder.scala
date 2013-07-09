@@ -93,12 +93,12 @@ object QueryBuilderSpec extends mutable.Specification {
       buildQueryString( Due.eqs(dt) ) must_== ("Due = '2013-07-06 03:33:42'")
       buildQueryString(
         CF("Power Level").gt(9000)
-      ) must_== ("CF.{Power Level} > 9000")
+      ) must_== ("'CF.{Power Level}' > 9000")
     }
     "Build queries" in {
       val q = Queue.matches("dev") AND CF("Power Level").gt(9000)
       buildQueryString( q ) must_== (
-        "(Queue LIKE 'dev' AND CF.{Power Level} > 9000)"
+        "(Queue LIKE 'dev' AND 'CF.{Power Level}' > 9000)"
       )
     }
     "Build nested queries like a goddamn champion" in {
