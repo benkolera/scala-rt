@@ -18,7 +18,7 @@ object QueryBuilder {
 
   sealed trait Identifier {
     def gt( v:Value ) = Compare( this , Gt , v )
-    def ln( v:Value ) = Compare( this , Lt , v )
+    def lt( v:Value ) = Compare( this , Lt , v )
     def eqs( v:Value ) = Compare( this , Eq , v )
     def neq( v:Value ) = Compare( this , Ne , v )
     def matches( v:StringValue ) = Compare( this , Matches , v )
@@ -37,6 +37,7 @@ object QueryBuilder {
   case object Due extends Identifier
   case object Starts extends Identifier
   case object Started extends Identifier
+  case object Closed extends Identifier
   case object LastContacted extends Identifier
   case object LastUpdated extends Identifier
   case object Updated extends Identifier
@@ -88,7 +89,7 @@ object QueryBuilder {
 
   def buildQueryString( q:Query ) = buildQueryCord(q).toString
   def buildOrderByString( ob:OrderBy ) = ob match {
-    case Asc(id)  => idCord(id).toString
+    case Asc(id)  => idCord(id,false).toString
     case Desc(id) => (Cord("-") ++ idCord(id)).toString
   }
 
@@ -119,10 +120,11 @@ object QueryBuilder {
       case NotIn => expListCord( "AND" , vs.map( Compare(id,Ne,_) ) )
     }
 
-  def idCord( id:Identifier ) = Cord(id match {
-    case CF( name ) => s"CF.{$name}"
-    case TicketId   => "Id"
-    case _          => id.toString //Probably going to regret this...
+  def idCord( id:Identifier , quoted:Boolean = true ) = Cord(id match {
+    case CF( name ) if quoted => s"'CF.{$name}'"
+    case CF( name )           => s"CF.{$name}"
+    case TicketId             => "Id"
+    case _                    => id.toString //Probably going to regret this...
   })
 
   def comparatorCord( cmp:Comparator ) = Cord(cmp match {
