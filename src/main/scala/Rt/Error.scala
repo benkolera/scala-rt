@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 sealed trait Error
 case class ServerError(t: Throwable) extends Error

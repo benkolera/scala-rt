@@ -1,8 +1,8 @@
-package Rt.Parser
+package com.benkolera.Rt.Parser
 
+import com.benkolera.Rt.QueryResult
 import org.specs2._
 import scalaz._
-import Rt.QueryResult
 
 object QueryParserSpec extends mutable.Specification {
   "The Query Response Parser" should {

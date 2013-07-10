@@ -1,6 +1,6 @@
-package Rt.Parser
-import scalaz._
+package com.benkolera.Rt.Parser
 
+import com.benkolera.Rt
 import scalaz._
 import syntax.applicative._
 

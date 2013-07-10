@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 import scalaz._
 import syntax.monad._
 import scala.util.matching.Regex

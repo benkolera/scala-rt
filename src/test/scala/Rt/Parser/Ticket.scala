@@ -1,9 +1,10 @@
-package Rt.Parser
+package com.benkolera.Rt.Parser
 
 import org.specs2._
 import scalaz._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.DateTimeZone.UTC
+import com.benkolera.Rt
 
 object TicketParserSpec extends mutable.Specification {
 

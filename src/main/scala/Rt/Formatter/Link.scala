@@ -1,4 +1,6 @@
-package Rt.Formatter
+package com.benkolera.Rt.Formatter
+
+import com.benkolera.Rt
 
 object Link {
   def updateToParamMap(

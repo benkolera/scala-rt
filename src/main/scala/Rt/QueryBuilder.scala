@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 import org.joda.time.DateTime
 import scalaz._
@@ -69,7 +69,7 @@ object QueryBuilder {
   case class Asc( id: Identifier ) extends OrderBy
   case class Desc( id: Identifier ) extends OrderBy
 
-  object Implicits {
+  object QueryBuilder {
     import language.implicitConversions
 
     implicit def stringToValue( s: String ) = StringValue(s)

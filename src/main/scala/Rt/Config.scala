@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 import dispatch._
 import scala.concurrent.{ExecutionContext,Future}

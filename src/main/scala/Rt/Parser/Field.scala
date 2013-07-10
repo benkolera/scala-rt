@@ -1,4 +1,4 @@
-package Rt.Parser
+package com.benkolera.Rt.Parser
 import scalaz._
 import std.list._
 import syntax.traverse._

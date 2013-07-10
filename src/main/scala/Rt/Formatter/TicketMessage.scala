@@ -1,5 +1,6 @@
-package Rt.Formatter
+package com.benkolera.Rt.Formatter
 
+import com.benkolera.Rt
 import com.ning.http.client.{Part,StringPart,ByteArrayPart}
 
 object TicketMessage {

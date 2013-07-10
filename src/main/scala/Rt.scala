@@ -1,3 +1,5 @@
+package com.benkolera
+
 import dispatch._
 import com.ning.http.client.{
   AsyncHandler,

@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 import scalaz._
 import org.joda.time.DateTime

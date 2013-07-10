@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeZone.UTC

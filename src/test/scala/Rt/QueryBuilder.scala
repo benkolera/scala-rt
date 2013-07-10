@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 import org.specs2._
 import scalaz._
@@ -64,7 +64,7 @@ object QueryBuilderSpec extends mutable.Specification {
   }
 
   "The query Implicit conversions" should {
-    import Implicits._
+    import QueryBuilder._
 
     "Coerce Strings to StringValues" in {
       val q = Compare( Queue, Eq , "dev" )
@@ -88,7 +88,7 @@ object QueryBuilderSpec extends mutable.Specification {
     }
   }
   "The builder syntax" should {
-    import Implicits._
+    import QueryBuilder._
     "Build comparisions" in {
       buildQueryString( Due.eqs(dt) ) must_== ("Due = '2013-07-06 03:33:42'")
       buildQueryString(

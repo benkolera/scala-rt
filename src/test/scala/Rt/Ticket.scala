@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 import org.specs2._
 import org.specs2.mock.Mockito
@@ -18,7 +18,7 @@ object TicketSpec extends mutable.Specification with Mockito {
 
   def runMockRtM( http: (Req => Response) , m: RtM[Int] ) = {
     m.run.run(
-      Rt.Config(
+      Config(
         "username",
         "password",
         "rt.test.com",
@@ -26,7 +26,7 @@ object TicketSpec extends mutable.Specification with Mockito {
         scala.concurrent.ExecutionContext.global,
         req => Future( http(req) ).either
       ) ,
-      Rt.emptyCookieJar
+      emptyCookieJar
     )
   }
 

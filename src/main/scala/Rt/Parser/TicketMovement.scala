@@ -1,4 +1,6 @@
-package Rt.Parser
+package com.benkolera.Rt.Parser
+
+import com.benkolera.Rt
 import scalaz._
 import syntax.monad._
 

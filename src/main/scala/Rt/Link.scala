@@ -1,4 +1,4 @@
-package Rt
+package com.benkolera.Rt
 
 sealed trait Link
 case class ExtUrlLink( url: String ) extends Link
@@ -16,6 +16,7 @@ case class TicketLinks (
 
 object Link {
 
+  import com.benkolera.Rt
   import dispatch._
   import scalaz._
   import syntax.monad._
@@ -24,7 +25,7 @@ object Link {
   import syntax.traverse._
   import scala.concurrent.Future
 
-  def show(ticketId:Int)( implicit m:Monad[Future] ):Rt.RtM[TicketLinks] = {
+  def show(ticketId:Int)( implicit m:Monad[Future] ):RtM[TicketLinks] = {
     for {
       req  <- rtApi.map( _ / "ticket" / ticketId / "links" / "show" )
       body <- callApi( req )

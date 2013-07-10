@@ -1,4 +1,4 @@
-package Rt.Parser
+package com.benkolera.Rt.Parser
 
 import org.specs2._
 import scalaz._
