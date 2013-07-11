@@ -141,6 +141,31 @@ object Ticket {
     } yield res
   }
 
+  def queryPaginated(
+    query:Query,orderBy:Option[OrderBy],page:Int,pageWidth:Int = 20
+  )(
+    implicit m:Monad[Future]
+  ):RtM[PaginatedResults[Ticket]] = {
+    queryPaginatedRaw(
+      QueryBuilder.buildQueryString( query ),
+      orderBy.map( QueryBuilder.buildOrderByString( _ ) ),
+      page,
+      pageWidth
+    )
+  }
+
+  def queryPaginatedRaw(
+    query:String,orderBy:Option[String],page:Int,pageWidth:Int = 20
+  )(
+    implicit m:Monad[Future]
+  ):RtM[PaginatedResults[Ticket]] = {
+    Query.queryRaw(query,orderBy).flatMap( qs =>
+      PaginatedResults.paginate( qs, page,pageWidth ){ qr =>
+        show(qr.ticketId).map( _.get )
+      }
+    )
+  }
+
   def create( ticket: NewTicket )( implicit m:Monad[Future] ) = {
     val c = Formatter.NewTicket.toContentString(ticket)
     for {
