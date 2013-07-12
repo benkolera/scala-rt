@@ -4,15 +4,15 @@ name := "rt"
 
 version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
 scalacOptions ++= Seq("-feature","-deprecation")
 
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.10.0",
   "org.clapper" %% "avsl" % "1.0.1",
-  "org.scalaz" %% "scalaz-core" % "7.0.0",
-  "org.scalaz" %% "scalaz-effect" % "7.0.0",
+  "org.scalaz" %% "scalaz-core" % "7.0.2",
+  "org.scalaz" %% "scalaz-effect" % "7.0.2",
   "org.typelevel" %% "scalaz-contrib-210" % "0.1.4" ,
   "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
   "com.github.nscala-time" %% "nscala-time" % "0.4.2",
