@@ -21,15 +21,17 @@ the configuration that it needs to do its job.
 For example
 
 ```scala
+import scalaz._
+import scalaz.contrib.std.scalaFutures
+import scalaz.std.list
 import com.benkolera.Rt
 import Rt.QueryBuilder._ , .QueryBuilder._
+
+
 val program = Rt.login.flatMap(
   _ => Rt.Tickets.query( Queue.eqs("dev") AND Status.in("new","open") )
 )
-
 //OR (they are both the same)
-import com.benkolera.Rt
-import Rt.QueryBuilder._ , .QueryBuilder._
 val program = for {
   _       <- Rt.login
   tickets <- Rt.Tickets.Query( Queue.eqs("dev") AND Status.in("new","open") )
