@@ -27,7 +27,7 @@ object Update {
       "TimeLeft" -> ticket.effort.timeLeft.toString
     ) ++ (
       ticket.customFields.toList.map(
-        t => Rt.CustomFieldName.systemName(t._1) -> t._2.str
+        t => Rt.CustomFieldName.systemName(t._1) -> t._2.toString
       )
     ))
   }

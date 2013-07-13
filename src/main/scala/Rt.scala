@@ -110,8 +110,8 @@ package object Rt {
     getConfig.map( _.username )
   private def getPassword( implicit m:Monad[Future] ) =
     getConfig.map( _.password )
-  private def getRtUri( implicit m: Monad[Future] ) =
-    getConfig.map( _.rtUri )
+  private def getRtUrl( implicit m: Monad[Future] ) =
+    getConfig.map( _.serverUrl )
   private def getExecutionContext( implicit m:Monad[Future] ) =
     getConfig.map( _.exContext )
   private def getHttp( implicit m:Monad[Future] ) =
@@ -147,11 +147,11 @@ package object Rt {
     } yield out
   }
 
-  private def rt( implicit a:Monad[Future] ) = getRtUrl.map( url =>
-    url(url) <:< Map(
+  private def rt( implicit a:Monad[Future] ) = getRtUrl.map( serverUrl =>
+    url(serverUrl) <:< Map(
       "User-Agent" -> "ScalaRT/0.01",
       //HACK: Couldn't get query to work without getting CSRF error without this
-      "Referer"    -> $url
+      "Referer"    -> serverUrl
     )
   )
 

@@ -7,7 +7,7 @@ import org.joda.time.format.{DateTimeFormat,DateTimeFormatter}
 case class Config (
   username: String,
   password: String,
-  rtUri: String,
+  serverUrl: String,
   dateTimeFormatter: DateTimeFormatter,
   exContext: ExecutionContext,
   http:     (Req => Future[Either[Throwable,Res]])
@@ -17,7 +17,7 @@ object Config {
   def makeConfig(
     username: String,
     password: String,
-    rtUri: String,
+    serverUrl: String,
     dateTimeFormatPattern: String = "EEE MMM dd HH:mm:ss YYYY" //Rt Default
   )(
     implicit ex: ExecutionContext
@@ -25,7 +25,7 @@ object Config {
     Config(
       username,
       password,
-      rtUri,
+      serverUrl,
       DateTimeFormat.forPattern(dateTimeFormatPattern),
       ex,
       (req:Req) => Http.apply(req).either

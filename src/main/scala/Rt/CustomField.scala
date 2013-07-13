@@ -10,13 +10,14 @@ object CustomFieldName {
   def systemName( fn: CustomFieldName ) = s"CF.{${fn.name}}"
 }
 
-case class CustomFieldValue( val str: String ) {
-  def toInt(): String \/ Int = Read.readInt( str )
-  def toDouble(): String \/ Double = Read.readDouble( str )
+case class CustomFieldValue( val string: String ) {
+  override def toString: String = string
+  def toInt(): String \/ Int = Read.readInt( toString )
+  def toDouble(): String \/ Double = Read.readDouble( toString )
   def toDateTime(dtf:DateTimeFormatter): String \/ DateTime =
-    Read.readDateTime( dtf )( str )
+    Read.readDateTime( dtf )( toString )
   def toOptDateTime(dtf:DateTimeFormatter): String \/ Option[DateTime] =
-    Read.readOptDateTime( dtf )( str )
+    Read.readOptDateTime( dtf )( toString )
 }
 
 

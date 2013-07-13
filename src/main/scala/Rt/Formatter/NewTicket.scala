@@ -27,7 +27,7 @@ object NewTicket {
       ticket.timeLeft.map( "TimeLeft" -> _.toString )
     ).collect{ case Some(t) => t } ++ (
       ticket.customFields.map(
-        t => Rt.CustomFieldName.systemName(t._1) -> t._2.str
+        t => Rt.CustomFieldName.systemName(t._1) -> t._2.toString
       )
     ))
   }

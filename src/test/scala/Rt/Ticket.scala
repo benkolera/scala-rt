@@ -21,7 +21,7 @@ object TicketSpec extends mutable.Specification with Mockito {
       Config(
         "username",
         "password",
-        "rt.test.com",
+        "http://rt.test.com",
         DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"),
         scala.concurrent.ExecutionContext.global,
         req => Future( http(req) ).either
@@ -58,7 +58,7 @@ object TicketSpec extends mutable.Specification with Mockito {
       val resultFuture = runMockRtM(
         mockHttp(
           "POST",
-          "https://rt.test.com/REST/1.0/ticket/new",
+          "http://rt.test.com/REST/1.0/ticket/new",
           List(
             "id: ticket/new",
             "Subject: test subject",
