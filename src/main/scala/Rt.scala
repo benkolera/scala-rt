@@ -118,7 +118,7 @@ package object Rt {
     getConfig.map( _.http )
 
   private def doHttp( req: Req )( implicit m:Monad[Future] ):RtM[Res] = {
-    val r = req.build
+    val r = req.toRequest
     def liftHttpResToRtM( config: Config ):RtM[Res] = {
       EitherT.right[RtRws,Error,Either[Throwable,Res]](config.http(req).liftM[RtRwsT]).flatMap{
         case Left(t) => EitherT.left[RtRws,Error,Res](

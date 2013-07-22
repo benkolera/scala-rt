@@ -77,7 +77,9 @@ object QueryBuilder {
     implicit def longToValue( l: Long ) = LongValue(l)
     implicit def doubleToValue( d: Double ) = DoubleValue(d)
     implicit def dateTimeToValue( dt: DateTime ) = DateTimeValue(dt)
+    implicit def customFieldNameToCF( cfn:CustomFieldName ) = CF(cfn.name)
     //Well now, this is a bit shit... Gotta be a better way.
+    //(there is, of course. Typeclasses!)
     implicit def stringSeqToValues( ss: Seq[String] ) = ss.map(StringValue(_))
     implicit def intSeqToValues( is: Seq[Int] ) = is.map(IntValue(_))
     implicit def longSeqToValues( ls: Seq[Long] ) = ls.map(LongValue(_))

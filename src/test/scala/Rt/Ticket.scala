@@ -34,7 +34,7 @@ object TicketSpec extends mutable.Specification with Mockito {
     req: Req
   ) = {
     import scala.collection.JavaConversions._
-    val r = req.build
+    val r = req.toRequest
     val o = mock[com.ning.http.client.Response]
     val actualContent = for {
       xs <- Option(r.getParams.get("content"))

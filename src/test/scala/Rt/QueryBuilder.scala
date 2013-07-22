@@ -70,6 +70,10 @@ object QueryBuilderSpec extends mutable.Specification {
       val q = Compare( Queue, Eq , "dev" )
       buildQueryString( q ) must_== ("Queue = 'dev'")
     }
+    "Coerce CustomFieldNames to CF Identifiers" in {
+      val q = Compare( CustomFieldName("Custom"), Eq , "foo" )
+      buildQueryString( q ) must_== ("'CF.{Custom}' = 'foo'")
+    }
     "Coerce Ints to IntValues" in {
       val q = Compare( TicketId, Eq , 1 )
       buildQueryString( q ) must_== ("Id = 1")
