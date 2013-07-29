@@ -9,6 +9,7 @@ Installation
 This isn't on maven central, so you'll have to install by going:
 
 * git clone https://github.com/benkolera/scala-rt.git
+* git checkout tags/0.1.0
 * sbt publish-local
 
 Use
