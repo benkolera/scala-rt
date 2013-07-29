@@ -39,6 +39,7 @@ val program = for {
 } yield tickets
 
 import concurrent.ExecutionContext.Implicits.global
-val tickets r.run.run(Rt.Config.makeConfig("user","pass","http://rt.test.com","Australia/Brisbane"),Rt.emptyCookieJar)
+val config = Rt.Config.makeConfig("user","pass","http://rt.test.com","Australia/Brisbane")
+val tickets r.run.run(config,Rt.emptyCookieJar)
 ```
 
