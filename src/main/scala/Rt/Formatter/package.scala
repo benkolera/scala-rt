@@ -1,8 +1,7 @@
 package com.benkolera.Rt
 
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.DateTimeZone.UTC
-import org.joda.time.DateTime
+import org.joda.time.{DateTimeZone,DateTime}
 import scalaz._
 
 package object Formatter {
@@ -12,12 +11,12 @@ package object Formatter {
 
   private val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
 
-  def fieldDateTimeToString( dt: DateTime ) = {
-    dtf.print( dt.withZone( UTC ) )
+  def fieldDateTimeToString(tz:DateTimeZone )(dt: DateTime) = {
+    dtf.print( dt.withZone( tz ) )
   }
 
-  def fieldOptDateTimeToString( dt: Option[DateTime] ) = {
-    dt.map( fieldDateTimeToString _ ).getOrElse( "Not set" )
+  def fieldOptDateTimeToString( tz:DateTimeZone )( dt: Option[DateTime] ) = {
+    dt.map( fieldDateTimeToString(tz) _ ).getOrElse( "Not set" )
   }
 
   def fieldsToContentString( ts: List[(String,String)] ) = {

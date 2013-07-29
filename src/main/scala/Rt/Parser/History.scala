@@ -7,6 +7,8 @@ import syntax.applicative._
 import syntax.traverse._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.format.DateTimeFormatter
+import org.joda.time.DateTimeZone
+import org.joda.time.DateTimeZone.UTC
 
 case class AttachmentInfo(
   id: Int,
@@ -171,9 +173,15 @@ object History {
   val attachRe = """(.+?) \((\d+(?:\.\d+)?)([bkmg])\)""".r
 
   def parseHistory(
-    dtf:DateTimeFormatter , responseStr: String
+    dtf:DateTimeFormatter , tz:DateTimeZone, responseStr: String
   ):Parser[List[History]] = {
-
+    //This makes me feel dirty and like I need to perform FP seppuku...
+    def extractDateTime(dtf:DateTimeFormatter) = {
+      def inner(m:Map[String,String])(fieldName:String) = {
+        Field.extractFieldDateTime(UTC)(dtf)(m)(fieldName).map( _.withZone(tz) )
+      }
+      inner _
+    }
 
     case class ConstructorArgs(
       id: Int,
@@ -446,7 +454,7 @@ object History {
 
     def toldConstructor( a: ConstructorArgs ):ConstructorOut = {
       for {
-        date <- Field.extractFieldDateTime(dtf)(a.fieldMap)("NewValue")
+        date <- extractDateTime(dtf)(a.fieldMap)("NewValue")
       } yield Told(
         id = a.id,
         ticketId = a.ticketId,
@@ -488,7 +496,7 @@ object History {
         Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
           val extInt      = Field.extractFieldInt( fieldMap )
           val extString   = Field.extractString( fieldMap )
-          val extDateTime = Field.extractFieldDateTime(dtf)( fieldMap )
+          val extDateTime = extractDateTime(dtf)( fieldMap )
 
           for {
             id          <- extInt( "id" )

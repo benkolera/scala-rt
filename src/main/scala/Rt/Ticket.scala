@@ -105,7 +105,8 @@ object Ticket {
       req  <- rtApi.map( _ / "ticket" / id / "show" )
       body <- callApi( req )
       dtf  <- getDtf
-      t    <- liftParseError(Parser.Ticket.parseTicket(dtf,body))
+      tz   <- getTz
+      t    <- liftParseError(Parser.Ticket.parseTicket(dtf,tz,body))
     } yield t
   }
 
@@ -114,7 +115,8 @@ object Ticket {
       req  <- rtApi.map( _ / "ticket" / id / "history" <<? Map("format"->"l") )
       body <- callApi( req )
       dtf  <- getDtf
-      hist <- liftParseError(Parser.History.parseHistory(dtf,body))
+      tz   <- getTz
+      hist <- liftParseError(Parser.History.parseHistory(dtf,tz,body))
     } yield hist
   }
 
@@ -137,7 +139,8 @@ object Ticket {
       req  <- rtApi.map( _ / "search" / "ticket" << queryMap )
       body <- callApi( req )
       dtf  <- getDtf
-      res  <- liftParseError(Parser.Ticket.parseTickets(dtf,body))
+      tz   <- getTz
+      res  <- liftParseError(Parser.Ticket.parseTickets(dtf,tz,body))
     } yield res
   }
 
@@ -167,8 +170,8 @@ object Ticket {
   }
 
   def create( ticket: NewTicket )( implicit m:Monad[Future] ) = {
-    val c = Formatter.NewTicket.toContentString(ticket)
     for {
+      c    <- getTz.map( Formatter.NewTicket.toContentString(ticket,_) )
       req  <- rtApi.map( _ / "ticket" / "new" ).map(addContentParam(c))
       body <- callApi( req )
       id   <- liftParseError(Parser.NewTicket.parseId(body))
@@ -204,7 +207,10 @@ object Ticket {
   }
 
   def update( ticket: Ticket )( implicit m:Monad[Future] ) = {
-    edit( ticket.id , Formatter.Update.toContentString( ticket ) )
+    for {
+      tz <- getTz
+      _  <- edit( ticket.id , Formatter.Update.toContentString( ticket , tz ) )
+    } yield ()
   }
 
   private def edit( id: Int , c: String )(

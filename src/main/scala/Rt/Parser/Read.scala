@@ -2,7 +2,7 @@ package com.benkolera.Rt.Parser
 
 import scalaz._
 import org.joda.time.format.{DateTimeFormat,DateTimeFormatter}
-import org.joda.time.DateTimeZone.UTC
+import org.joda.time.DateTimeZone
 
 object Read {
 
@@ -20,18 +20,19 @@ object Read {
   def readList(s:String): List[String] = {
     s.split(",").toList.map( _.trim )
   }
-  def readDateTime(format: DateTimeFormatter) = {
-    val utcFormat = format.withZone(UTC)
+  def readDateTime(format: DateTimeFormatter, tz: DateTimeZone ) = {
+    val utcFormat = format.withZone(tz)
     def read(s:String) = \/.fromTryCatch(
       utcFormat.parseDateTime(s)
     ).leftMap( t => s"$s is not a datetime. Err: ${t.getMessage}" )
     read _
   }
 
-  def readOptDateTime(format: DateTimeFormatter)(s:String) = s match {
-    case ""        => \/-(None)
-    case "Not set" => \/-(None)
-    case str       => readDateTime(format)(str).map(Some(_))
-  }
+  def readOptDateTime(format: DateTimeFormatter,tz:DateTimeZone)(s:String) =
+    s match {
+      case ""        => \/-(None)
+      case "Not set" => \/-(None)
+      case str       => readDateTime(format,tz)(str).map(Some(_))
+    }
 
 }

@@ -1,10 +1,12 @@
 package com.benkolera.Rt.Formatter
 
 import com.benkolera.Rt
+import org.joda.time.DateTimeZone
 
 object NewTicket {
 
-  def toContentString( ticket: Rt.NewTicket ):String = {
+  def toContentString( ticket: Rt.NewTicket , tz:DateTimeZone ):String = {
+    val dateTimeToString = fieldDateTimeToString(tz) _
     fieldsToContentString(List(
       Some("id" -> "ticket/new"),
       Some("Subject" -> ticket.subject),
@@ -18,10 +20,10 @@ object NewTicket {
       ticket.priority.map( "Priority" -> _.toString ),
       ticket.finalPriority.map( "FinalPriority" -> _.toString ),
       ticket.initialPriority.map( "InitialPriority" -> _.toString ),
-      ticket.starts.map( dt => "Starts" -> fieldDateTimeToString(dt) ),
-      ticket.started.map( dt => "Started" -> fieldDateTimeToString(dt) ),
-      ticket.due.map( dt => "Due" -> fieldDateTimeToString(dt) ),
-      ticket.resolved.map( dt => "Resolved" -> fieldDateTimeToString(dt) ),
+      ticket.starts.map( dt => "Starts" -> dateTimeToString(dt) ),
+      ticket.started.map( dt => "Started" -> dateTimeToString(dt) ),
+      ticket.due.map( dt => "Due" -> dateTimeToString(dt) ),
+      ticket.resolved.map( dt => "Resolved" -> dateTimeToString(dt) ),
       ticket.timeEstimated.map( "TimeEstimated" -> _.toString ),
       ticket.timeWorked.map( "TimeWorked" -> _.toString ),
       ticket.timeLeft.map( "TimeLeft" -> _.toString )

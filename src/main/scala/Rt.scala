@@ -81,6 +81,8 @@ package object Rt {
 
   private[Rt] def getDtf( implicit m:Monad[Future] ) =
     getConfig.map( _.dateTimeFormatter )
+  private[Rt] def getTz( implicit m:Monad[Future] ) =
+    getConfig.map( _.dateTimeZone )
 
   private[Rt] def liftParseError[A]( pOut: Parser.Parser[A] )(
     implicit m:Monad[Future]
