@@ -24,6 +24,17 @@ case class CustomFieldValue( val string: String ) {
     Read.readList( string )
 }
 
+object CustomFieldValue {
+  def fromInt(i:Int) = CustomFieldValue(i.toString)
+  def fromDouble(d:Double) = CustomFieldValue(d.toString)
+  def fromDateTime(dt:DateTime,dtf:DateTimeFormatter) =
+    fromOptDateTime(Some(dt),dtf)
+  def fromOptDateTime( dt:Option[DateTime],dtf:DateTimeFormatter ) =
+    CustomFieldValue(dt.map( dtf.print _ ).getOrElse( "Not set" ))
+  def fromList( l:List[String] ) =
+    CustomFieldValue(l.mkString( "," ))
+}
+
 
 object CustomField {
   type Map = scala.collection.immutable.Map[CustomFieldName,CustomFieldValue]

@@ -21,9 +21,9 @@ object Read {
     s.split(",").toList.map( _.trim )
   }
   def readDateTime(format: DateTimeFormatter, tz: DateTimeZone ) = {
-    val utcFormat = format.withZone(tz)
+    val tzFormat = format.withZone(tz)
     def read(s:String) = \/.fromTryCatch(
-      utcFormat.parseDateTime(s)
+      tzFormat.parseDateTime(s)
     ).leftMap( t => s"$s is not a datetime. Err: ${t.getMessage}" )
     read _
   }
