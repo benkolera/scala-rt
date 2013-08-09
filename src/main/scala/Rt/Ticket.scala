@@ -172,7 +172,7 @@ object Ticket {
   def create( ticket: NewTicket )( implicit m:Monad[Future] ) = {
     for {
       c    <- getTz.map( Formatter.NewTicket.toContentString(ticket,_) )
-      req  <- rtApi.map( _ / "ticket" / "new" ).map(addContentParam(c))
+      req  <- rtApi.map( _ / "ticket" / "edit" ).map(addContentParam(c))
       body <- callApi( req )
       id   <- liftParseError(Parser.NewTicket.parseId(body))
     } yield id

@@ -28,8 +28,8 @@ object NewTicket {
       ticket.timeWorked.map( "TimeWorked" -> _.toString ),
       ticket.timeLeft.map( "TimeLeft" -> _.toString )
     ).collect{ case Some(t) => t } ++ (
-      ticket.customFields.map(
-        t => Rt.CustomFieldName.systemName(t._1) -> t._2.toString
+      ticket.customFields.toList.flatMap(
+        t => t._2.map( v => Rt.CustomFieldName.systemName(t._1) -> v.toString )
       )
     ))
   }

@@ -80,7 +80,11 @@ object Ticket {
 
   def extractCustomFields(m: Map[String,String]): Rt.CustomField.Map = {
     m.collect{
-      case (customFieldRe(name),v) => Rt.CustomField.tuple(name,v)
+      case (customFieldRe(name),v) => {
+        Rt.CustomFieldName( name ) -> v.split(",").map(
+          s => Rt.CustomFieldValue(s.trim)
+        ).toList
+      }
     }
   }
 

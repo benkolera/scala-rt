@@ -20,8 +20,6 @@ case class CustomFieldValue( val string: String ) {
     dtf:DateTimeFormatter,tz:DateTimeZone
   ): String \/ Option[DateTime] =
     Read.readOptDateTime( dtf ,tz )( toString )
-  def toList(): List[String] =
-    Read.readList( string )
 }
 
 object CustomFieldValue {
@@ -31,14 +29,12 @@ object CustomFieldValue {
     fromOptDateTime(Some(dt),dtf)
   def fromOptDateTime( dt:Option[DateTime],dtf:DateTimeFormatter ) =
     CustomFieldValue(dt.map( dtf.print _ ).getOrElse( "Not set" ))
-  def fromList( l:List[String] ) =
-    CustomFieldValue(l.mkString( "," ))
 }
 
 
 object CustomField {
-  type Map = scala.collection.immutable.Map[CustomFieldName,CustomFieldValue]
+  type Map = scala.collection.immutable.Map[CustomFieldName,List[CustomFieldValue]]
   def tuple( key:String , value:String ) = {
-    CustomFieldName(key) -> CustomFieldValue(value)
+    CustomFieldName(key) -> List(CustomFieldValue(value))
   }
 }
