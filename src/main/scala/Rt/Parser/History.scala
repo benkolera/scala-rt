@@ -1,4 +1,7 @@
-package com.benkolera.Rt.Parser
+package com.benkolera.Rt
+package Parser
+
+import TicketHistory._
 
 import scalaz._
 import std.option._
@@ -10,175 +13,20 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.DateTimeZone
 import org.joda.time.DateTimeZone.UTC
 
-case class AttachmentInfo(
-  id: Int,
-  name: String,
-  size: Long
-)
-
-object WatcherType extends Enumeration {
-  val Requestor,Cc,AdminCc = Value
-}
-
-sealed trait History {
-  def id: Int
-  def ticketId: Int
-  def description: String
-  def creator: String
-  def created: DateTime
-}
-
-case class EmailRecord(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  content: String,
-  attachments: List[AttachmentInfo]
-) extends History
-case class Create(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  timeTaken: Int,
-  content: String,
-  attachments: List[AttachmentInfo]
-) extends History
-case class CustomField(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  fieldId: Int,
-  oldValue: String,
-  newValue: String
-) extends History
-case class Status(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  oldStatus: String,
-  newStatus: String
-) extends History
-case class CommentEmailRecord (
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  content: String,
-  attachments: List[AttachmentInfo]
-) extends History
-case class Correspond(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  subject: String,
-  content: String,
-  timeTaken: Int,
-  attachments: List[AttachmentInfo]
-) extends History
-case class Comment(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  subject: String,
-  content: String,
-  timeTaken: Int,
-  attachments: List[AttachmentInfo]
-) extends History
-case class AddWatcher(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  watcherType: WatcherType.Value,
-  watcher: String
-) extends History
-case class DeleteWatcher(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  watcherType: WatcherType.Value,
-  watcher: String
-) extends History
-case class AddLink(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  linkName: String,
-  url: String
-) extends History
-case class DeleteLink(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  linkName: String,
-  url: String
-) extends History
-case class AddReminder(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  reminderId: Int
-) extends History
-case class ResolveReminder(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  reminderId: Int
-) extends History
-case class Set(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  fieldName: String,
-  oldValue: String,
-  newValue: String
-) extends History
-case class Told(
-  id: Int,
-  ticketId:Int,
-  description: String,
-  creator: String,
-  created: DateTime,
-  date: DateTime
-) extends History
 
 object History {
 
   val attachRe = """(.+?) \((\d+(?:\.\d+)?)([bkmg])\)""".r
-
+  val historyDtf = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" )
   def parseHistory(
-    dtf:DateTimeFormatter , tz:DateTimeZone, responseStr: String
-  ):Parser[List[History]] = {
-    //This makes me feel dirty and like I need to perform FP seppuku...
-    def extractDateTime(dtf:DateTimeFormatter) = {
+    tz:DateTimeZone, responseStr: String
+  ):Parser[List[TicketHistory]] = {
+
+    val extractDateTime = {
       def inner(m:Map[String,String])(fieldName:String) = {
-        Field.extractFieldDateTime(UTC)(dtf)(m)(fieldName).map( _.withZone(tz) )
+        Field.extractFieldDateTime(UTC)(historyDtf)(m)(fieldName).map(
+          _.withZone(tz)
+        )
       }
       inner _
     }
@@ -191,7 +39,7 @@ object History {
       created: DateTime,
       fieldMap: Map[String,String]
     )
-    type ConstructorOut = Parser[History]
+    type ConstructorOut = Parser[TicketHistory]
 
     def attachFieldsToAttachments(
       fs: List[Field]
@@ -454,7 +302,7 @@ object History {
 
     def toldConstructor( a: ConstructorArgs ):ConstructorOut = {
       for {
-        date <- extractDateTime(dtf)(a.fieldMap)("NewValue")
+        date <- extractDateTime(a.fieldMap)("NewValue")
       } yield Told(
         id = a.id,
         ticketId = a.ticketId,
@@ -496,7 +344,7 @@ object History {
         Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
           val extInt      = Field.extractFieldInt( fieldMap )
           val extString   = Field.extractString( fieldMap )
-          val extDateTime = extractDateTime(dtf)( fieldMap )
+          val extDateTime = extractDateTime( fieldMap )
 
           for {
             id          <- extInt( "id" )

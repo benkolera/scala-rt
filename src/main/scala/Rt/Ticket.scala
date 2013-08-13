@@ -114,9 +114,8 @@ object Ticket {
     for {
       req  <- rtApi.map( _ / "ticket" / id / "history" <<? Map("format"->"l") )
       body <- callApi( req )
-      dtf  <- getDtf
       tz   <- getTz
-      hist <- liftParseError(Parser.History.parseHistory(dtf,tz,body))
+      hist <- liftParseError(Parser.History.parseHistory(tz,body))
     } yield hist
   }
 
