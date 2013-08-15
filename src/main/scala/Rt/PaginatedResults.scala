@@ -4,7 +4,8 @@ case class PaginatedResults[A](
   results: List[A],
   currentPage: Int,
   pageWidth: Int,
-  pageCount:Int
+  pageCount:Int,
+  resultCount: Int
 )
 
 object PaginatedResults {
@@ -31,7 +32,7 @@ object PaginatedResults {
       _   <- EitherT( validatePage( page, cnt ).point[RtRws] )
       bs  <- qr.drop( (page-1) * width ).take( width ).map( reifier ).sequenceU
     } yield
-      PaginatedResults( bs, page, width, cnt )
+      PaginatedResults( bs, page, width, cnt , qr.length )
   }
 
   def validatePage( page:Int , pageCount:Int )( implicit m:Monad[Future] ) = {
