@@ -10,6 +10,7 @@ case class Config (
   username: String,
   password: String,
   serverUrl: String,
+  logRequests: Boolean,
   dateTimeZone: DateTimeZone,
   dateTimeFormatter: DateTimeFormatter,
   exContext: ExecutionContext,
@@ -22,6 +23,7 @@ object Config {
     password: String,
     serverUrl: String,
     timeZoneName: String,
+    logRequests: Boolean = false,
     dateTimeFormatPattern: String = "EEE MMM dd HH:mm:ss YYYY" //Rt Default
   )(
     implicit ex: ExecutionContext
@@ -30,6 +32,7 @@ object Config {
       username,
       password,
       serverUrl,
+      logRequests,
       DateTimeZone.forTimeZone( TimeZone.getTimeZone( timeZoneName ) ),
       DateTimeFormat.forPattern(dateTimeFormatPattern),
       ex,

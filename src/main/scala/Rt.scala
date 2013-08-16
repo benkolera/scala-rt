@@ -15,6 +15,7 @@ import syntax.monad._
 import scalaz.contrib.std.scalaFuture._
 import std.list._
 import std.either._
+import syntax.std.boolean._
 import concurrent.{ExecutionContext,Future}
 import collection.JavaConversions._
 import language.higherKinds
@@ -56,8 +57,10 @@ package object Rt {
 
   // == INTERNAL SHARED METHODS ================================================
 
-  private[Rt] def log(l:String)( implicit m:Monad[Future] ):RtM[Unit] =
-    rtM( (r,s) => (List(l),(),s).point[Future] )
+  private[Rt] def log(l: => String)( implicit m:Monad[Future] ):RtM[Unit] =
+    rtM( (r,s) =>
+      (r.logRequests.fold(List(l),Nil),(),s).point[Future]
+    )
 
   private[Rt] def fail[A]( err: Error )( implicit m:Monad[Future] ):RtM[A] =
     EitherT.left( err.point[RtRws] )
