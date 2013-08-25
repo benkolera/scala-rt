@@ -16,17 +16,17 @@ package object Parser {
   }
   private val OkRe =
     rtStatusMatcher("200 Ok")
-  private val AuthenticationRequiredRe =
-    rtStatusMatcher("401 Authentication Required")
+  private val CredentialsRequiredRe =
+    rtStatusMatcher("401 Credentials required")
 
   private[Parser] def parseResponse(
     responseLines: List[String]
   ):Parser[List[String]] = {
     responseLines match {
-      case OkRe()::""::rest               => rest.point[Parser]
-      case OkRe()::rest                   => rest.point[Parser]
-      case AuthenticationRequiredRe()::xs => parserFail(AuthenticationRequired)
-      case _                              => parserFail(
+      case OkRe()::""::rest            => rest.point[Parser]
+      case OkRe()::rest                => rest.point[Parser]
+      case CredentialsRequiredRe()::xs => parserFail(CredentialsRequired)
+      case _                           => parserFail(
         BadResponse(responseLines.mkString("\n"))
       )
     }

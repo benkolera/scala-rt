@@ -4,7 +4,7 @@ import scalaz._
 import syntax.std.boolean._
 
 sealed trait ParserError
-object AuthenticationRequired extends ParserError
+object CredentialsRequired extends ParserError
 case class BadResponse( response: String ) extends ParserError
 case class ExpectationNotMet( expect: String, response: String ) extends ParserError
 case class BadBodyLine( lines: List[String] , idx: Int, msg: String ) extends ParserError

@@ -90,7 +90,10 @@ package object Rt {
   private[Rt] def liftParseError[A]( pOut: Parser.Parser[A] )(
     implicit m:Monad[Future]
   ): RtM[A] =
-    EitherT( pOut.leftMap( BadResponse(_) ).run.point[RtRws] )
+    EitherT( pOut.leftMap{
+      case Parser.CredentialsRequired => NotLoggedIn
+      case parseErr            => BadResponse(parseErr)
+    }.run.point[RtRws] )
 
   // == PRIVATE METHODS ========================================================
 

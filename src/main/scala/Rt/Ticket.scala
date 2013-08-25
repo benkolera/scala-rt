@@ -162,8 +162,11 @@ object Ticket {
     implicit m:Monad[Future]
   ):RtM[PaginatedResults[Ticket]] = {
     Query.queryRaw(query,orderBy).flatMap( qs =>
-      PaginatedResults.paginate( qs, page,pageWidth ){ qr =>
-        show(qr.ticketId).map( _.get )
+      PaginatedResults.paginateWSubQuery( qs, page,pageWidth ){ qr =>
+        val pageTicketsQ = QueryBuilder.TicketId.in(
+          qr.map( r => QueryBuilder.IntValue(r.ticketId) ).toSeq:_*
+        )
+        Ticket.queryRaw(QueryBuilder.buildQueryString(pageTicketQ),orderBy)
       }
     )
   }

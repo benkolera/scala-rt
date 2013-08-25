@@ -18,6 +18,21 @@ object PaginatedResults {
   import scalaz.contrib.std.scalaFuture._
   import scala.concurrent.Future
 
+  def paginateWSubQuery[A,B](
+    qr: List[A] ,
+    page:Int ,
+    width: Int
+  )(
+    subQuery: List[A] => RtM[List[B]]
+  )(
+    implicit m:Monad[Future]
+  ):RtM[PaginatedResults[B]] = {
+    for {
+      pgres <- EitherT( calculatePagination(qr,page,width).point[RtRws] )
+      bs    <- subQuery( pgres.results )
+    } yield pgres.copy( results = bs )
+  }
+
   def paginate[A,B](
     qr: List[A] ,
     page:Int ,
@@ -28,23 +43,37 @@ object PaginatedResults {
     implicit m:Monad[Future]
   ):RtM[PaginatedResults[B]] = {
     for {
-      cnt <- EitherT( calculatePageCount( qr.length, width ).point[RtRws] )
-      _   <- EitherT( validatePage( page, cnt ).point[RtRws] )
-      bs  <- qr.drop( (page-1) * width ).take( width ).map( reifier ).sequenceU
-    } yield
-      PaginatedResults( bs, page, width, cnt , qr.length )
+      pgres <- EitherT( calculatePagination(qr,page,width).point[RtRws] )
+      bs    <- pgres.results.map( reifier ).sequenceU
+    } yield pgres.copy( results = bs )
   }
 
-  def validatePage( page:Int , pageCount:Int )( implicit m:Monad[Future] ) = {
+  def calculatePagination[A](
+    qr: List[A] ,
+    page:Int ,
+    width: Int
+  ): InvalidPagination \/ PaginatedResults[A] = {
+    for {
+      cnt <- calculatePageCount( qr.length, width )
+      _   <- validatePage( page, cnt )
+    } yield PaginatedResults(
+      qr.drop( (page-1) * width ).take( width ),
+      page,
+      width,
+      cnt,
+      qr.length
+    )
+
+  }
+
+  def validatePage( page:Int , pageCount:Int ) = {
     if ( page < 1 || page > pageCount )
       -\/(InvalidPagination("Page should be between 1 and " + pageCount ))
     else
       \/-(())
   }
 
-  def calculatePageCount( total:Int , pageWidth:Int )(
-    implicit m:Monad[Future]
-  ) = {
+  def calculatePageCount( total:Int , pageWidth:Int ) = {
     if ( pageWidth <= 0 )
       -\/(InvalidPagination("Page width should be greater than 0"))
     else
