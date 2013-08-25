@@ -2,7 +2,7 @@ organization := "com.benkolera"
 
 name := "rt"
 
-version := "0.3.3-SNAPSHOT"
+version := "0.3.2"
 
 scalaVersion := "2.10.2"
 

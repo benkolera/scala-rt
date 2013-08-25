@@ -166,7 +166,7 @@ object Ticket {
         val pageTicketsQ = QueryBuilder.TicketId.in(
           qr.map( r => QueryBuilder.IntValue(r.ticketId) ).toSeq:_*
         )
-        Ticket.queryRaw(QueryBuilder.buildQueryString(pageTicketQ),orderBy)
+        Ticket.queryRaw(QueryBuilder.buildQueryString(pageTicketsQ),orderBy)
       }
     )
   }
