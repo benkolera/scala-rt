@@ -2,6 +2,8 @@ package com.benkolera.Rt.Formatter
 
 import com.benkolera.Rt
 import org.joda.time.DateTimeZone
+import com.github.tototoshi.csv._
+import java.io.StringWriter
 
 object Update {
 
@@ -28,10 +30,15 @@ object Update {
       "TimeWorked" -> ticket.effort.timeWorked.toString,
       "TimeLeft" -> ticket.effort.timeLeft.toString
     ) ++ (
-      ticket.customFields.toList.map(
-        t => Rt.CustomFieldName.systemName(t._1) ->
-          t._2.map( _.toString ).mkString( "," )
-      )
+      ticket.customFields.toList.map{ t =>
+        val stringWriter = new StringWriter()
+        val csvWriter    = CSVWriter.open(stringWriter)
+        csvWriter.writeRow( t._2.map(_.toString) )
+        csvWriter.flush()
+        csvWriter.close()
+
+        Rt.CustomFieldName.systemName(t._1) -> stringWriter.toString
+      }
     ))
   }
 

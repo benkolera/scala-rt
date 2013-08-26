@@ -10,6 +10,8 @@ import com.github.nscala_time.time.Imports._
 import scala.util.Try
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.DateTimeZone
+import com.github.tototoshi.csv._
+import java.io.StringReader
 
 object Ticket {
 
@@ -80,10 +82,17 @@ object Ticket {
 
   def extractCustomFields(m: Map[String,String]): Rt.CustomField.Map = {
     m.collect{
-      case (customFieldRe(name),v) => {
-        Rt.CustomFieldName( name ) -> v.split(",").map(
-          s => Rt.CustomFieldValue(s.trim)
-        ).toList
+      case (customFieldRe(n),v) => {
+        /* With a picklist, you get a csv line. With a string value, you just get
+         * a big string.
+         * Test for a newline to determine whether it is a string or picklist.
+         */
+        val values =
+          if (v.contains('\n'))
+            List(v)
+          else
+            CSVReader.open(new StringReader(v)).all.flatten
+        Rt.CustomFieldName(n) -> values.map( Rt.CustomFieldValue(_) )
       }
     }
   }
