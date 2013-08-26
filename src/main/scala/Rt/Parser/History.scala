@@ -313,6 +313,16 @@ object History {
       )
     }
 
+    def systemErrorConstructor( a: ConstructorArgs ):ConstructorOut = {
+      SystemError(
+        id = a.id,
+        ticketId = a.ticketId,
+        description = a.desc,
+        creator = a.creator,
+        created = a.created
+      ).point[Parser]
+    }
+
     val constructorMap = Map(
       "EmailRecord" -> emailRecordConstructor _ ,
       "Create" -> createConstructor _ ,
@@ -328,7 +338,8 @@ object History {
       "AddReminder" -> addReminderConstructor _ ,
       "ResolveReminder" -> resolveReminderConstructor _ ,
       "Set" -> setConstructor _ ,
-      "Told" -> toldConstructor _
+      "Told" -> toldConstructor _,
+      "SystemError" -> systemErrorConstructor _
     )
 
     def getConstructor( ticketType: String ) = {

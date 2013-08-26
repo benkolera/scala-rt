@@ -161,4 +161,11 @@ object TicketHistory {
     created: DateTime,
     date: DateTime
   ) extends TicketHistory
+  case class SystemError(
+    id: Int,
+    ticketId:Int,
+    description: String,
+    creator: String,
+    created: DateTime
+  ) extends TicketHistory
 }

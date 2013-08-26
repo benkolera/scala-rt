@@ -2,7 +2,7 @@ organization := "com.benkolera"
 
 name := "rt"
 
-version := "0.3.3"
+version := "0.4.0"
 
 scalaVersion := "2.10.2"
 
@@ -24,3 +24,14 @@ libraryDependencies ++= Seq(
 resolvers ++= Seq(
   "jboss repo" at "http://repository.jboss.org/nexus/content/groups/public-jboss/"
 )
+
+//Make this publish to oss.sonatype.com later
+publishTo <<= version { (v: String) =>
+  val nexus = "http://jenkins.build.iseek.com.au:8081/nexus/"
+  if (v.trim.endsWith("SNAPSHOT"))
+    Some("snapshots" at nexus + "content/repositories/snapshots/")
+  else
+    Some("releases"  at nexus + "content/repositories/releases/")
+}
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
