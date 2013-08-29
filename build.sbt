@@ -10,7 +10,6 @@ scalacOptions ++= Seq("-feature","-deprecation")
 
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
-  "org.clapper" %% "avsl" % "1.0.1",
   "org.scalaz" %% "scalaz-core" % "7.0.2",
   "org.scalaz" %% "scalaz-effect" % "7.0.2",
   "org.typelevel" %% "scalaz-contrib-210" % "0.1.4" ,
