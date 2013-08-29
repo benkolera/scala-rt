@@ -6,6 +6,8 @@ scalaVersion := "2.10.2"
 
 scalacOptions ++= Seq("-feature","-deprecation")
 
+releaseSettings
+
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
   "org.scalaz" %% "scalaz-core" % "7.0.2",
