@@ -2,8 +2,6 @@ organization := "com.benkolera"
 
 name := "rt"
 
-version := "0.4.0"
-
 scalaVersion := "2.10.2"
 
 scalacOptions ++= Seq("-feature","-deprecation")
