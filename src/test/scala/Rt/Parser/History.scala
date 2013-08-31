@@ -7,14 +7,16 @@ import org.joda.time.format.DateTimeFormat
 
 object HistoryParserSpec extends mutable.Specification {
 
+  import com.benkolera.Rt.TicketHistory._
+  import com.benkolera.Rt.{AttachmentInfo,WatcherType}
   import scala.io.Source
-  val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+  val dtz = DateTimeZone.forOffsetHours(10)
 
   "The History Parser" should {
     "Parse a history with a single history" in {
 
       val historyDisj = History.parseHistory(
-        dtf,Source.fromURL(getClass.getResource("/historySingle.txt")).mkString
+        dtz,Source.fromURL(getClass.getResource("/historySingle.txt")).mkString
       ).run
 
       val expectedHistory = Create(
@@ -22,7 +24,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 894804,
         description = "Ticket created by test@test.com",
         creator = "test@test.com",
-        created = new DateTime(2012,11,27,23,0,31,DateTimeZone.UTC),
+        created = new DateTime(2012,11,28,9,0,31,dtz),
         timeTaken = 0,
         attachments = List(
           AttachmentInfo( 4743161 , "untitled" , 0 ),
@@ -55,7 +57,7 @@ object HistoryParserSpec extends mutable.Specification {
     "Parse a history list" in {
 
       val historyDisj = History.parseHistory(
-        dtf,Source.fromURL(getClass.getResource("/history.txt")).mkString
+        dtz,Source.fromURL(getClass.getResource("/history.txt")).mkString
       ).run
 
       if(historyDisj.isLeft) {
@@ -71,7 +73,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Ticket created by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,43,8,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,43,8,dtz),
         timeTaken = 1,
         attachments = List(
           AttachmentInfo( 5236258 , "untitled" , 0 ),
@@ -93,7 +95,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Outgoing email recorded by RT_System",
         creator = "RT_System",
-        created = new DateTime(2013,6,24,7,43,9,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,43,9,dtz),
         attachments = List(
           AttachmentInfo( 5236261 , "untitled" , 440 )
         ),
@@ -117,7 +119,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Reminder 'REMINDER TO CLOSE THIS!' added by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,43,41,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,43,41,dtz),
         reminderId = 968313
       ))
       histories(3) must_==(ResolveReminder(
@@ -125,7 +127,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Reminder 'REMINDER TO CLOSE THIS!' completed by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,44,1,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,44,1,dtz),
         reminderId = 968313
       ))
       histories(4) must_==(Correspond(
@@ -133,7 +135,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Correspondence added by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,44,27,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,44,27,dtz),
         timeTaken = 10,
         subject = "No Subject",
         attachments = List(
@@ -150,7 +152,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Status changed from 'new' to 'open' by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,44,28,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,44,28,dtz),
         oldStatus = "new",
         newStatus = "open"
       ))
@@ -159,7 +161,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Untaken by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,45,4,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,45,4,dtz),
         fieldName = "Owner",
         oldValue = "377964",
         newValue = "10"
@@ -169,7 +171,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "AdminCc devnull@test.com deleted by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,45,5,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,45,5,dtz),
         watcherType = WatcherType.AdminCc,
         watcher = "375978"
       ))
@@ -178,7 +180,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Comments added by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,45,29,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,45,29,dtz),
         timeTaken = 20,
         subject = "No Subject",
         attachments = List(
@@ -195,7 +197,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Outgoing email about a comment recorded by RT_System",
         creator = "RT_System",
-        created = new DateTime(2013,6,24,7,45,29,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,45,29,dtz),
         attachments = List(
           AttachmentInfo( 5236274 , "untitled" , 236 )
         ),
@@ -214,7 +216,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Member ticket #895253 deleted by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,24,7,46,12,DateTimeZone.UTC),
+        created = new DateTime(2013,6,24,17,46,12,dtz),
         linkName = "HasMember",
         url = "fsck.com-rt://test.com/ticket/895253"
       ))
@@ -223,7 +225,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Initiator Customer changed to Automatic System Report by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,25,1,5,45,DateTimeZone.UTC),
+        created = new DateTime(2013,6,25,11,5,45,dtz),
         fieldId = 58,
         oldValue = "Customer",
         newValue = "Automatic System Report"
@@ -233,7 +235,7 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Cc ben@test.com added by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,25,1,9,31,DateTimeZone.UTC),
+        created = new DateTime(2013,6,25,11,9,31,dtz),
         watcherType = WatcherType.Cc,
         watcher = "377736"
       ))
@@ -242,8 +244,8 @@ object HistoryParserSpec extends mutable.Specification {
         ticketId = 968312,
         description = "Told changed from Not set to 2013-06-28 00:00:00 by bkolera",
         creator = "bkolera",
-        created = new DateTime(2013,6,25,1,9,33,DateTimeZone.UTC),
-        date = new DateTime(2013,6,27,14,0,0,DateTimeZone.UTC)
+        created = new DateTime(2013,6,25,11,9,33,dtz),
+        date = new DateTime(2013,6,28,0,0,0,dtz)
       ))
     }
   }

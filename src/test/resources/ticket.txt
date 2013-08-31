@@ -22,8 +22,7 @@ LastUpdated: 2013-06-07 16:49:40
 TimeEstimated: 0
 TimeWorked: 0
 TimeLeft: 0
-CF.{Picklist}: This is a picklist
-               So it gets indented like this
+CF.{Picklist}: This is a picklist,So it gets formatted like this
 CF.{Multi Line Customfield}: But this is a multiline thing
-    so it fucking gets indented with something
-     different just to be a goddamned pain in the ass.
+    so it should get the shortest common indent
+     trimmed off of it.

@@ -3,19 +3,19 @@ package com.benkolera.Rt.Parser
 import org.specs2._
 import scalaz._
 import com.github.nscala_time.time.Imports._
-import org.joda.time.DateTimeZone.UTC
 import com.benkolera.Rt
 
 object TicketParserSpec extends mutable.Specification {
 
   import scala.io.Source
   val dtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+  val dtz = DateTimeZone.forOffsetHours(10)
 
   "The Ticket Parser" should {
     "Parse a ticket" in {
 
       val ticketDisj = Ticket.parseTicket(
-        dtf,Source.fromURL(getClass.getResource("/ticket.txt")).mkString
+        dtf,dtz,Source.fromURL(getClass.getResource("/ticket.txt")).mkString
       ).run
 
       val expectedTicket = Rt.Ticket(
@@ -36,13 +36,13 @@ object TicketParserSpec extends mutable.Specification {
           finalPriority = 100
         ),
         dates = Rt.TicketDates(
-          created = new DateTime(2013,6,7,15,35,28,DateTimeZone.UTC),
-          lastUpdated = new DateTime(2013,6,7,16,49,40,DateTimeZone.UTC),
+          created = new DateTime(2013,6,7,15,35,28,dtz),
+          lastUpdated = new DateTime(2013,6,7,16,49,40,dtz),
           starts = None:Option[DateTime],
-          started = Some(new DateTime(2013,6,7,16,49,40,DateTimeZone.UTC)),
-          due = Some(new DateTime(2013,6,14,15,35,28,DateTimeZone.UTC)),
+          started = Some(new DateTime(2013,6,7,16,49,40,dtz)),
+          due = Some(new DateTime(2013,6,14,15,35,28,dtz)),
           resolved = None:Option[DateTime],
-          told = Some(new DateTime(2013,6,7,16,49,40,DateTimeZone.UTC))
+          told = Some(new DateTime(2013,6,7,16,49,40,dtz))
         ),
         effort = Rt.TicketEffort(
           timeEstimated = 0,
@@ -50,17 +50,16 @@ object TicketParserSpec extends mutable.Specification {
           timeLeft = 0
         ),
         customFields = Map(
-          Rt.CustomField.tuple(
-            "Picklist",
-            "This is a picklist\nSo it gets indented like this"
+          Rt.CustomFieldName("Picklist") -> List(
+            Rt.CustomFieldValue("This is a picklist"),
+            Rt.CustomFieldValue("So it gets formatted like this")
           ),
-          Rt.CustomField.tuple(
-            "Multi Line Customfield",
-            List(
+          Rt.CustomFieldName("Multi Line Customfield") -> List(
+            Rt.CustomFieldValue(List(
               "But this is a multiline thing",
-              "so it fucking gets indented with something",
-              " different just to be a goddamned pain in the ass."
-            ).mkString("\n")
+              "so it should get the shortest common indent",
+              " trimmed off of it."
+            ).mkString("\n"))
           )
         )
       )
@@ -70,14 +69,14 @@ object TicketParserSpec extends mutable.Specification {
     }
     "Not die if no ticket was found" in {
       val ticketDisj = Ticket.parseTicket(
-        dtf,"RT/4.0.12 200 Ok\n\n# Ticket 198210010 does not exist."
+        dtf,dtz,"RT/4.0.12 200 Ok\n\n# Ticket 198210010 does not exist."
       ).run
 
       ticketDisj must_==(\/-(None))
     }
     "Parse some tickets" in {
       val ticketDisj = Ticket.parseTickets(
-        dtf,Source.fromURL(getClass.getResource("/tickets.txt")).mkString
+        dtf,dtz,Source.fromURL(getClass.getResource("/tickets.txt")).mkString
       ).run
 
       ticketDisj.map( _.length ) must_==(\/-(3))
@@ -86,7 +85,7 @@ object TicketParserSpec extends mutable.Specification {
     }
     "Not die if no tickets were returned" in {
       val ticketDisj = Ticket.parseTickets(
-        dtf,"RT/4.0.12 200 Ok\n\nNo matching results."
+        dtf,dtz,"RT/4.0.12 200 Ok\n\nNo matching results."
       ).run
 
       ticketDisj.map( _.length ) must_==(\/-(0))

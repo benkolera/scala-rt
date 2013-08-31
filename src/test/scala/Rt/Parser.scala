@@ -20,11 +20,11 @@ object ParserSpec extends mutable.Specification {
         |""".stripMargin
       )))
     }
-    "Throw an AuthenticationRequired for 401" in {
+    "Throw an CredentialsRequired for 401" in {
       parseResponse(List(
-      "RT/4.0.14 401 Authentication Required",
+      "RT/4.0.14 401 Credentials required",
       ""
-      )).run must beEqualTo(-\/(AuthenticationRequired))
+      )).run must beEqualTo(-\/(CredentialsRequired))
     }
     "Return the remaining lines on a 200 Ok" in {
       parseResponse(

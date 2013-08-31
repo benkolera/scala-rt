@@ -6,10 +6,10 @@ import scalaz._
 
 object QueryParserSpec extends mutable.Specification {
   "The Query Response Parser" should {
-    "Return Authentication required for 401" in {
+    "Return Credentials required for 401" in {
       Query.parseQueryResponse(
-        "RT/4.0.14 401 Authentication Required"
-      ).run must beEqualTo(-\/(AuthenticationRequired))
+        "RT/4.0.14 401 Credentials required"
+      ).run must beEqualTo(-\/(CredentialsRequired))
     }
     "Return empty list for no Results" in {
       Query.parseQueryResponse(
