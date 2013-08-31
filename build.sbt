@@ -1,3 +1,6 @@
+import ReleaseKeys._
+import sbtrelease.{Version,versionFormatError}
+
 organization := "com.benkolera"
 
 name := "rt"
@@ -5,8 +8,6 @@ name := "rt"
 scalaVersion := "2.10.2"
 
 scalacOptions ++= Seq("-feature","-deprecation")
-
-releaseSettings
 
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
@@ -23,6 +24,12 @@ libraryDependencies ++= Seq(
 resolvers ++= Seq(
   "jboss repo" at "http://repository.jboss.org/nexus/content/groups/public-jboss/"
 )
+
+nextVersion := { ver =>
+  Version(ver).map(_.bumpBugfix.asSnapshot.string).getOrElse(versionFormatError)
+}
+
+releaseSettings
 
 //Make this publish to oss.sonatype.com later
 publishTo <<= version { (v: String) =>
