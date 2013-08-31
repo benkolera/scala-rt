@@ -25,11 +25,11 @@ resolvers ++= Seq(
   "jboss repo" at "http://repository.jboss.org/nexus/content/groups/public-jboss/"
 )
 
+releaseSettings
+
 nextVersion := { ver =>
   Version(ver).map(_.bumpBugfix.asSnapshot.string).getOrElse(versionFormatError)
 }
-
-releaseSettings
 
 //Make this publish to oss.sonatype.com later
 publishTo <<= version { (v: String) =>
