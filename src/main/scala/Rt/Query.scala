@@ -20,9 +20,11 @@ object Query {
   def query(query:Query,orderBy:Option[OrderBy])(
     implicit m:Monad[Future]
   ) = {
-    queryRaw(
-      QueryBuilder.buildQueryString( query ),
-      orderBy.map( QueryBuilder.buildOrderByString( _ ) )
+    getTz.flatMap( dtz =>
+      queryRaw(
+        QueryBuilder.buildQueryString( dtz )(query ),
+        orderBy.map( QueryBuilder.buildOrderByString( _ ) )
+      )
     )
   }
 

@@ -122,9 +122,11 @@ object Ticket {
   def query(query:Query,orderBy:Option[OrderBy])(
     implicit m:Monad[Future]
   ) = {
-    queryRaw(
-      QueryBuilder.buildQueryString( query ),
-      orderBy.map( QueryBuilder.buildOrderByString( _ ) )
+    getTz.flatMap( dtz =>
+      queryRaw(
+        QueryBuilder.buildQueryString( dtz )( query ),
+        orderBy.map( QueryBuilder.buildOrderByString( _ ) )
+      )
     )
   }
 
@@ -148,11 +150,13 @@ object Ticket {
   )(
     implicit m:Monad[Future]
   ):RtM[PaginatedResults[Ticket]] = {
-    queryPaginatedRaw(
-      QueryBuilder.buildQueryString( query ),
-      orderBy.map( QueryBuilder.buildOrderByString( _ ) ),
-      page,
-      pageWidth
+    getTz.flatMap( dtz =>
+      queryPaginatedRaw(
+        QueryBuilder.buildQueryString( dtz )( query ),
+        orderBy.map( QueryBuilder.buildOrderByString( _ ) ),
+        page,
+        pageWidth
+      )
     )
   }
 
@@ -161,13 +165,17 @@ object Ticket {
   )(
     implicit m:Monad[Future]
   ):RtM[PaginatedResults[Ticket]] = {
-    Query.queryRaw(query,orderBy).flatMap( qs =>
-      PaginatedResults.paginateWSubQuery( qs, page,pageWidth ){ qr =>
-        val pageTicketsQ = QueryBuilder.TicketId.in(
-          qr.map( r => QueryBuilder.IntValue(r.ticketId) ).toSeq:_*
-        )
-        Ticket.queryRaw(QueryBuilder.buildQueryString(pageTicketsQ),orderBy)
-      }
+    getTz.flatMap( dtz =>
+      Query.queryRaw(query,orderBy).flatMap( qs =>
+        PaginatedResults.paginateWSubQuery( qs, page,pageWidth ){ qr =>
+          val pageTicketsQ = QueryBuilder.TicketId.in(
+            qr.map( r => QueryBuilder.IntValue(r.ticketId) ).toSeq:_*
+          )
+          Ticket.queryRaw(
+            QueryBuilder.buildQueryString(dtz)(pageTicketsQ),orderBy
+          )
+        }
+      )
     )
   }
 

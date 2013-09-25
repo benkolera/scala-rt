@@ -2,8 +2,10 @@ package com.benkolera.Rt
 
 import org.joda.time.DateTime
 import scalaz._
+import scalaz.syntax.traverse._
+import std.list._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.DateTimeZone.UTC
+import org.joda.time.DateTimeZone
 
 object QueryBuilder {
 
@@ -89,30 +91,32 @@ object QueryBuilder {
 
   val dtf = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" )
 
-  def buildQueryString( q:Query ) = buildQueryCord(q).toString
+  def buildQueryString( dtz:DateTimeZone )( q:Query ) = buildQueryCord(q).run(dtz).toString
   def buildOrderByString( ob:OrderBy ) = ob match {
     case Asc(id)  => idCord(id,false).toString
     case Desc(id) => (Cord("-") ++ idCord(id)).toString
   }
 
   // This isn't tail recursive, but this should be OK
-  def buildQueryCord( q:Query ):Cord = q match {
+  def buildQueryCord( q:Query ):Reader[DateTimeZone,Cord] = q match {
     case And(e1,e2,er @_*)     => expListCord( "AND",e1::e2::er.toList )
     case Or(e1,e2,er @_*)      => expListCord( "OR" ,e1::e2::er.toList )
     case SetCompare(id,cmp,vs) => setCompareCord( id , cmp , vs )
-    case Compare(id,cmp,v)     => compareCord( id, cmp , v )
+    case Compare(id,cmp,v)     => compareCord(id, cmp , v )
   }
 
   def expListCord( sep:String, er: Seq[Query] ) = {
     val spacedSep = Cord.fromStrings( Seq(" " , sep , " ") )
-    Cord("(") ++
-    Cord.mkCord( spacedSep, er.map(buildQueryCord _) :_* ) ++
-    Cord(")")
+    er.map(buildQueryCord _).toList.sequenceU.map( qs =>
+      Cord("(") ++
+      Cord.mkCord( spacedSep,  qs:_* ) ++
+      Cord(")")
+    )
   }
 
-  def compareCord( id: Identifier, cmp: Comparator, v: Value ) = {
-    Cord.mkCord(
-      Cord(" "), idCord(id) , comparatorCord(cmp) , valueCord(v)
+  def compareCord(id: Identifier, cmp: Comparator, v: Value ) = {
+    valueCord(v).map(
+      vc => Cord.mkCord( Cord(" "), idCord(id) , comparatorCord(cmp) , vc)
     )
   }
 
@@ -138,12 +142,14 @@ object QueryBuilder {
     case DoesntMatch => "NOT LIKE"
   })
 
-  def valueCord( v:Value ) = v match {
-    case StringValue(s)    => quote(s)
-    case DoubleValue(d)    => Cord.fromStrings(Seq(d.toString))
-    case LongValue(l)      => Cord.fromStrings(Seq(l.toString))
-    case IntValue(i)       => Cord.fromStrings(Seq(i.toString))
-    case DateTimeValue(dt) => quote(dtf.print( dt.withZone( UTC ) ))
+  def valueCord( v:Value ):Reader[DateTimeZone,Cord] = Reader{
+    dtz => v match {
+      case StringValue(s)    => quote(s)
+      case DoubleValue(d)    => Cord.fromStrings(Seq(d.toString))
+      case LongValue(l)      => Cord.fromStrings(Seq(l.toString))
+      case IntValue(i)       => Cord.fromStrings(Seq(i.toString))
+      case DateTimeValue(dt) => quote(dtf.print( dt.withZone( dtz ) ))
+    }
   }
 
   def quote( s:String ) = Cord.fromStrings( Seq( "'" , s , "'" ) )
