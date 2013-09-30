@@ -327,3 +327,40 @@ Content: This transaction appears to have no content
 Creator: bkolera
 Created: 2013-06-25 01:28:19
 Attachments: 
+
+--
+
+# 10/10 (id/8869481/total)
+
+id: 8869481
+Ticket: 819195
+TimeTaken: 0
+Type: Give
+Field: Owner
+OldValue: 10
+NewValue: 2724021
+Data: 
+Description: Given to jherrador by jherrador
+Content: This transaction appears to have no content
+Creator: jherrador
+Created: 2012-04-20 04:22:52
+Attachments: 
+
+--
+
+# 19/19 (id/9184310/total)
+
+id: 9184310
+Ticket: 832379
+TimeTaken: 0
+Type: Take
+Field: Owner
+OldValue: 10
+NewValue: 2724021
+Data: 
+Description: Taken by jherrador
+Content: This transaction appears to have no content
+Creator: jherrador
+Created: 2012-05-30 01:01:14
+Attachments: 
+

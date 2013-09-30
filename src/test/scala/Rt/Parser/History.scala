@@ -66,7 +66,7 @@ object HistoryParserSpec extends mutable.Specification {
 
       historyDisj.isRight must_==(true)
       val histories = historyDisj.toOption.get
-      histories.length must_==(15)
+      histories.length must_==(17)
 
       histories(0) must_==(Create(
         id = 11041164,
@@ -246,6 +246,24 @@ object HistoryParserSpec extends mutable.Specification {
         creator = "bkolera",
         created = new DateTime(2013,6,25,11,9,33,dtz),
         date = new DateTime(2013,6,28,0,0,0,dtz)
+      ))
+      histories(15) must_==(Give(
+        id = 8869481,
+        ticketId = 819195,
+        description = "Given to jherrador by jherrador",
+        creator = "jherrador",
+        created = new DateTime(2012,4,20,14,22,52,dtz),
+        oldUserId = 10,
+        newUserId = 2724021
+      ))
+      histories(16) must_==(Take(
+        id = 9184310,
+        ticketId = 832379,
+        description = "Taken by jherrador",
+        creator = "jherrador",
+        created = new DateTime(2012,5,30,11,1,14,dtz),
+        oldUserId = 10,
+        newUserId = 2724021
       ))
     }
   }

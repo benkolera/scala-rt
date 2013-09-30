@@ -142,7 +142,8 @@ object Field {
       case Some(pf@PartialField(None,name,_)) => line match {
         case paddingRe(padding) => {
           val maxIndent = Math.min( padding.length, name.length + 2 )
-          val re = s"\\s{${maxIndent}}(.*)".r
+          val re = s"\\s{${maxIndent}}(.*)\r".r
+
           val re(rest) = line
           set( Some(pf.copy( indentRe = Some(re), value = rest :: pf.value ) ) )
         }
@@ -167,14 +168,20 @@ object Field {
   }
 
   val commentRe     = """^#.+""".r
-  val fieldStartRe  = """(\w.*?): ?(.*)""".r
+  val fieldStartRe  = """(\w.*?): ?(.*)\r?""".r
 
   def consumeLine( lineNum: Int, line: String ):FieldParser[Option[Field]] = {
     line match {
       case commentRe()             => consumeNoop()
-      case fieldStartRe(name,rest) => endPartialField(Some(PartialField(None,name,List(rest))))
-      case ""                      => endPartialField(None)
-      case _                       => appendLineToCurrent( lineNum, line ).map( _ => None )
+      case fieldStartRe(name,rest) => {
+        endPartialField(Some(PartialField(None,name,List(rest))))
+      }
+      case ""                      => {
+        endPartialField(None)
+      }
+      case _                       => {
+        appendLineToCurrent( lineNum, line ).map( _ => None )
+      }
     }
   }
 

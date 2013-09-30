@@ -168,4 +168,22 @@ object TicketHistory {
     creator: String,
     created: DateTime
   ) extends TicketHistory
+  case class Take(
+    id: Int,
+    ticketId:Int,
+    description: String,
+    creator: String,
+    created: DateTime,
+    oldUserId: Int,
+    newUserId: Int
+  ) extends TicketHistory
+  case class Give(
+    id: Int,
+    ticketId:Int,
+    description: String,
+    creator: String,
+    created: DateTime,
+    oldUserId: Int,
+    newUserId: Int
+  ) extends TicketHistory
 }

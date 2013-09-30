@@ -323,6 +323,39 @@ object History {
       ).point[Parser]
     }
 
+    def takeConstructor( a: ConstructorArgs ):ConstructorOut = {
+      val extInt      = Field.extractFieldInt( a.fieldMap )
+      for {
+        oldValue  <- extInt("OldValue")
+        newValue  <- extInt("NewValue")
+      } yield Take(
+        id = a.id,
+        ticketId = a.ticketId,
+        description = a.desc,
+        creator = a.creator,
+        created = a.created,
+        oldUserId = oldValue,
+        newUserId = newValue
+      )
+    }
+
+    def giveConstructor( a: ConstructorArgs ):ConstructorOut = {
+      val extInt      = Field.extractFieldInt( a.fieldMap )
+
+      for {
+        oldValue  <- extInt("OldValue")
+        newValue  <- extInt("NewValue")
+      } yield Give(
+        id = a.id,
+        ticketId = a.ticketId,
+        description = a.desc,
+        creator = a.creator,
+        created = a.created,
+        oldUserId = oldValue,
+        newUserId = newValue
+      )
+    }
+
     val constructorMap = Map(
       "EmailRecord" -> emailRecordConstructor _ ,
       "Create" -> createConstructor _ ,
@@ -339,7 +372,9 @@ object History {
       "ResolveReminder" -> resolveReminderConstructor _ ,
       "Set" -> setConstructor _ ,
       "Told" -> toldConstructor _,
-      "SystemError" -> systemErrorConstructor _
+      "SystemError" -> systemErrorConstructor _,
+      "Give" -> giveConstructor _,
+      "Take" -> takeConstructor _
     )
 
     def getConstructor( ticketType: String ) = {
