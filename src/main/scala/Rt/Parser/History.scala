@@ -356,6 +356,23 @@ object History {
       )
     }
 
+    def stealConstructor( a: ConstructorArgs ):ConstructorOut = {
+      val extInt      = Field.extractFieldInt( a.fieldMap )
+
+      for {
+        oldValue  <- extInt("OldValue")
+        newValue  <- extInt("NewValue")
+      } yield Steal(
+        id = a.id,
+        ticketId = a.ticketId,
+        description = a.desc,
+        creator = a.creator,
+        created = a.created,
+        oldUserId = oldValue,
+        newUserId = newValue
+      )
+    }
+
     val constructorMap = Map(
       "EmailRecord" -> emailRecordConstructor _ ,
       "Create" -> createConstructor _ ,
@@ -374,7 +391,8 @@ object History {
       "Told" -> toldConstructor _,
       "SystemError" -> systemErrorConstructor _,
       "Give" -> giveConstructor _,
-      "Take" -> takeConstructor _
+      "Take" -> takeConstructor _,
+      "Steal" -> stealConstructor _
     )
 
     def getConstructor( ticketType: String ) = {

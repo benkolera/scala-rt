@@ -186,4 +186,13 @@ object TicketHistory {
     oldUserId: Int,
     newUserId: Int
   ) extends TicketHistory
+  case class Steal(
+    id: Int,
+    ticketId:Int,
+    description: String,
+    creator: String,
+    created: DateTime,
+    oldUserId: Int,
+    newUserId: Int
+  ) extends TicketHistory
 }
