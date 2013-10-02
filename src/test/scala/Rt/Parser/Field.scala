@@ -67,7 +67,7 @@ object FieldParserSpec extends mutable.Specification {
       )).run must beEqualTo(-\/(BadBodyLine(
         List("Fooo: This is a field","      That spans over multi lines","bad field"),
         3,
-        "Line of a multiline field didn't start with expected indent (\\s{6}(.*))."
+        "Line of a multiline field didn't start with expected indent ((?s)\\s{6}(.*))."
       )))
     }
     "Should error if the payload doesn't start with a field" in {
