@@ -16,8 +16,8 @@ object Field {
 
   def parseFields( lines: List[String] ):Parser[List[Field]] = {
     import Trampoline.{suspend,done}
-
-    val result = (lines ++ List("")).zipWithIndex.foldLeft(
+    val cleanLines = lines.map(_.stripLineEnd)
+    val result = ( cleanLines ++ List("")).zipWithIndex.foldLeft(
       List[Field]().point[FieldParser]
     )(
       (acc,lineWNum) => {
@@ -38,7 +38,7 @@ object Field {
 
     EitherT(
       result.bimap(
-        e => BadBodyLine( lines , e._2 + 1 , e._1 ), _.reverse
+        e => BadBodyLine( cleanLines , e._2 + 1 , e._1 ), _.reverse
       ).point[Scalaz.Id]
     )
 
@@ -134,7 +134,7 @@ object Field {
       StateT( s => (s,(msg,lineNum)).point[Free.Trampoline] )
     )
 
-  val paddingRe    = """(\s+).*""".r
+  val paddingRe    = """(?s)(\s+).*""".r
 
   def appendLineToCurrent( lineNum: Int , line: String ):FieldParser[Unit] = {
     getWip.flatMap{
@@ -142,10 +142,19 @@ object Field {
       case Some(pf@PartialField(None,name,_)) => line match {
         case paddingRe(padding) => {
           val maxIndent = Math.min( padding.length, name.length + 2 )
-          val re = s"\\s{${maxIndent}}(.*)\r".r
+          val re = s"(?s)\\s{${maxIndent}}(.*)".r
 
-          val re(rest) = line
-          set( Some(pf.copy( indentRe = Some(re), value = rest :: pf.value ) ) )
+          line match {
+            case re(rest) => set(
+              Some(pf.copy( indentRe = Some(re), value = rest :: pf.value ) )
+            )
+            case _ => {
+              fail(
+                s"Start of line didn't match expected indent ($maxIndent): $line",
+                lineNum
+              )
+            }
+          }
         }
         case _ => fail(
           s"2nd field line didn't start with a indent.",lineNum
@@ -168,7 +177,7 @@ object Field {
   }
 
   val commentRe     = """^#.+""".r
-  val fieldStartRe  = """(\w.*?): ?(.*)\r?""".r
+  val fieldStartRe  = """(?s)(\w.*?): ?(.*)""".r
 
   def consumeLine( lineNum: Int, line: String ):FieldParser[Option[Field]] = {
     line match {

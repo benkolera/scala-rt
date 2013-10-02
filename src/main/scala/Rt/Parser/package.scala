@@ -19,15 +19,17 @@ package object Parser {
   private val CredentialsRequiredRe =
     rtStatusMatcher("401 Credentials required")
 
+  private val lineSepRe = """\n""".r
+
   private[Parser] def parseResponse(
-    responseLines: List[String]
+    responseBody: String
   ):Parser[List[String]] = {
-    responseLines match {
+    lineSepRe.split(responseBody).toList match {
       case OkRe()::""::rest            => rest.point[Parser]
       case OkRe()::rest                => rest.point[Parser]
       case CredentialsRequiredRe()::xs => parserFail(CredentialsRequired)
-      case _                           => parserFail(
-        BadResponse(responseLines.mkString("\n"))
+      case lines                       => parserFail(
+        BadResponse(lines.mkString("\n"))
       )
     }
   }
@@ -49,7 +51,7 @@ package object Parser {
   }
 
   def expectString( s:String , body:String ): Parser[Unit] = {
-    parseResponse( body.split("\n").toList ).flatMap{
+    parseResponse( body ).flatMap{
       case l::ls if s == l => ().point[Parser]
       case resBody         => parserFail(
         ExpectationNotMet(s,resBody.mkString("\n"))
@@ -58,7 +60,7 @@ package object Parser {
   }
 
   def expectRegex( r:Regex , body:String ): Parser[Unit] = {
-    parseResponse( body.split("\n").toList ).flatMap{
+    parseResponse( body ).flatMap{
       case r()::ls => ().point[Parser]
       case resBody => parserFail(
         ExpectationNotMet(r.toString,resBody.mkString("\n"))

@@ -110,7 +110,7 @@ object Ticket {
     dtf: DateTimeFormatter , tz:DateTimeZone, responseStr: String
   ):Parser[Option[Rt.Ticket]] = {
     val parse1Ticket = parseSingleTicket(dtf,tz) _
-    parseResponse( responseStr.split("\n").toList ).flatMap{
+    parseResponse( responseStr ).flatMap{
       case ticketNotFoundRe()::ls => None.point[Parser]
       case ls                     => parse1Ticket(ls).map( Some(_) )
     }
@@ -122,7 +122,7 @@ object Ticket {
     dtf: DateTimeFormatter , tz: DateTimeZone , responseStr: String
   ):Parser[List[Rt.Ticket]] = {
     val parse1Ticket = parseSingleTicket(dtf,tz) _
-    parseResponse( responseStr.split("\n").toList ).flatMap{
+    parseResponse( responseStr ).flatMap{
       case ticketsEmptyRe()::ls => Nil.point[Parser]
       case lines => splitMultipart( lines ).map( parse1Ticket ).sequenceU
     }

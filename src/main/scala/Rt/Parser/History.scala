@@ -385,7 +385,7 @@ object History {
       )( _.point[Parser] )
     }
 
-    parseResponse( responseStr.split("\n").toList ).flatMap( lines =>
+    parseResponse( responseStr ).flatMap( lines =>
       splitMultipart( lines ).map( historyLines =>
         Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
           val extInt      = Field.extractFieldInt( fieldMap )

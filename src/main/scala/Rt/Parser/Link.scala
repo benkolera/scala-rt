@@ -24,7 +24,7 @@ object Link {
     val extOptList = Field.extractOptFieldList _
     val extStr  = Field.extractField _
     for {
-      lines <- parseResponse( responseStr.split("\n").toList )
+      lines <- parseResponse( responseStr )
       fs    <- Field.parseFieldMap( lines )
       id    <- extStr(fs)("id").flatMap(extractId)
     } yield  Rt.TicketLinks(
