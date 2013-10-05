@@ -5,9 +5,9 @@ organization := "com.benkolera"
 
 name := "rt"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
-scalacOptions ++= Seq("-feature","-deprecation")
+scalacOptions ++= Seq("-feature","-deprecation","-Xfatal-warnings")
 
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
@@ -33,7 +33,7 @@ nextVersion := { ver =>
 
 //Make this publish to oss.sonatype.com later
 publishTo <<= version { (v: String) =>
-  val nexus = "http://jenkins.build.iseek.com.au:8081/nexus/"
+  val nexus = "http://nexus.benkolera.com/nexus/"
   if (v.trim.endsWith("SNAPSHOT"))
     Some("snapshots" at nexus + "content/repositories/snapshots/")
   else
