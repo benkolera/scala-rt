@@ -23,13 +23,18 @@ object PaginatedResults {
     page:Int ,
     width: Int
   )(
-    subQuery: List[A] => RtM[List[B]]
+    subQuery: NonEmptyList[A] => RtM[List[B]]
   )(
     implicit m:Monad[Future]
   ):RtM[PaginatedResults[B]] = {
+    def doSubQuery( rawList:List[A] ) = rawList match {
+      case Nil     => List[B]().point[RtM]
+      case a::rest => subQuery( NonEmptyList( a , rest:_* ) )
+    }
+
     for {
       pgres <- EitherT( calculatePagination(qr,page,width).point[RtRws] )
-      bs    <- subQuery( pgres.results )
+      bs    <- doSubQuery( pgres.results )
     } yield pgres.copy( results = bs )
   }
 

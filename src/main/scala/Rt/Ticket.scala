@@ -168,8 +168,8 @@ object Ticket {
     getTz.flatMap( dtz =>
       Query.queryRaw(query,orderBy).flatMap( qs =>
         PaginatedResults.paginateWSubQuery( qs, page,pageWidth ){ qr =>
-          val pageTicketsQ = QueryBuilder.TicketId.in(
-            qr.map( r => QueryBuilder.IntValue(r.ticketId) ).toSeq:_*
+          val pageTicketsQ = QueryBuilder.TicketId.inNel(
+            qr.map( r => QueryBuilder.IntValue(r.ticketId) )
           )
           Ticket.queryRaw(
             QueryBuilder.buildQueryString(dtz)(pageTicketsQ),orderBy

@@ -52,14 +52,14 @@ object QueryBuilderSpec extends mutable.Specification {
     }
     "Print out an 'in' comparison" in {
       val q1 = SetCompare(
-        Status, In , List( StringValue("open") , StringValue("new") )
+        Status, In , NonEmptyList( StringValue("open") , StringValue("new") )
       )
       val s = bqs( q1 )
       s must_== ("(Status = 'open' OR Status = 'new')")
     }
     "Print out an 'not in' comparison" in {
       val q1 = SetCompare(
-        Status, NotIn , List( StringValue("closed") , StringValue("rejected") )
+        Status,NotIn,NonEmptyList(StringValue("closed"),StringValue("rejected"))
       )
       val s = bqs( q1 )
       s must_== ("(Status != 'closed' AND Status != 'rejected')")
@@ -114,6 +114,13 @@ object QueryBuilderSpec extends mutable.Specification {
         "((Queue = 'dev' OR Queue = 'dev.projects') AND (Status = 'open' OR Status = 'new'))"
       )
     }
+    "Build inNel queries fine" in {
+      val q = Queue.in("dev","dev.projects") AND Status.inNel(NonEmptyList("open","new"))
+      bqs( q ) must_== (
+        "((Queue = 'dev' OR Queue = 'dev.projects') AND (Status = 'open' OR Status = 'new'))"
+      )
+    }
+
   }
 
 }

@@ -2,7 +2,7 @@ package com.benkolera.Rt
 
 import org.joda.time.DateTime
 import scalaz._
-import scalaz.syntax.traverse._
+import syntax.traverse._
 import std.list._
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeZone
@@ -16,7 +16,7 @@ object QueryBuilder {
   case class And( e1: Query , e2: Query , rest: Query* ) extends Query
   case class Or( e1: Query , e2: Query , rest: Query* ) extends Query
   case class Compare( id: Identifier , c: Comparator , v: Value ) extends Query
-  case class SetCompare(id:Identifier,c:SetComparator,vs:Seq[Value]) extends Query
+  case class SetCompare(id:Identifier,c:SetComparator,vs:NonEmptyList[Value]) extends Query
 
   sealed trait Identifier {
     def gt( v:Value ) = Compare( this , Gt , v )
@@ -25,8 +25,10 @@ object QueryBuilder {
     def neq( v:Value ) = Compare( this , Ne , v )
     def matches( v:StringValue ) = Compare( this , Matches , v )
     def notMatches( v:StringValue ) = Compare( this , DoesntMatch , v )
-    def in( l: Value* ) = SetCompare( this , In , l )
-    def notIn( l: Value* ) = SetCompare( this , NotIn , l)
+    def in( v: Value , rest: Value* ) = SetCompare( this , In , NonEmptyList(v , rest:_*) )
+    def inNel( nel:NonEmptyList[Value] ) = SetCompare( this , In , nel )
+    def notIn( v: Value , rest:Value* ) = SetCompare( this , NotIn , NonEmptyList(v , rest:_*) )
+    def notIn( nel:NonEmptyList[Value] ) = SetCompare( this , NotIn , nel )
   }
   case object TicketId extends Identifier
   case object Queue extends Identifier
@@ -99,13 +101,13 @@ object QueryBuilder {
 
   // This isn't tail recursive, but this should be OK
   def buildQueryCord( q:Query ):Reader[DateTimeZone,Cord] = q match {
-    case And(e1,e2,er @_*)     => expListCord( "AND",e1::e2::er.toList )
-    case Or(e1,e2,er @_*)      => expListCord( "OR" ,e1::e2::er.toList )
+    case And(e1,e2,er @_*)     => expListCord( "AND", NonEmptyList(e1,(e2::er.toList):_* ) )
+    case Or(e1,e2,er @_*)      => expListCord( "OR" , NonEmptyList(e1,(e2::er.toList):_* ) )
     case SetCompare(id,cmp,vs) => setCompareCord( id , cmp , vs )
     case Compare(id,cmp,v)     => compareCord(id, cmp , v )
   }
 
-  def expListCord( sep:String, er: Seq[Query] ) = {
+  def expListCord( sep:String, er: NonEmptyList[Query] ) = {
     val spacedSep = Cord.fromStrings( Seq(" " , sep , " ") )
     er.map(buildQueryCord _).toList.sequenceU.map( qs =>
       Cord("(") ++
@@ -120,7 +122,7 @@ object QueryBuilder {
     )
   }
 
-  def setCompareCord( id: Identifier, c: SetComparator, vs: Seq[Value] ) =
+  def setCompareCord( id: Identifier, c: SetComparator, vs: NonEmptyList[Value] ) =
     c match {
       case In    => expListCord( "OR" , vs.map( Compare(id,Eq,_) ) )
       case NotIn => expListCord( "AND" , vs.map( Compare(id,Ne,_) ) )
