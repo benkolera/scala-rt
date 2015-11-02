@@ -5,7 +5,7 @@ import scalaz._
 
 object PaginatedResultsSpec extends mutable.Specification {
   import PaginatedResults._
-  import scalaz.contrib.std.scalaFuture._
+  import std.scalaFuture._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "The page count calculator" should {

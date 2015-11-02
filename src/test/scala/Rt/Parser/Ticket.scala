@@ -16,7 +16,7 @@ object TicketParserSpec extends mutable.Specification {
 
       val ticketDisj = Ticket.parseTicket(
         dtf,dtz,Source.fromURL(getClass.getResource("/ticket.txt")).mkString
-      ).run
+      )
 
       val expectedTicket = Rt.Ticket(
         id = 962663,
@@ -70,14 +70,14 @@ object TicketParserSpec extends mutable.Specification {
     "Not die if no ticket was found" in {
       val ticketDisj = Ticket.parseTicket(
         dtf,dtz,"RT/4.0.12 200 Ok\n\n# Ticket 198210010 does not exist."
-      ).run
+      )
 
       ticketDisj must_==(\/-(None))
     }
     "Parse some tickets" in {
       val ticketDisj = Ticket.parseTickets(
         dtf,dtz,Source.fromURL(getClass.getResource("/tickets.txt")).mkString
-      ).run
+      )
 
       ticketDisj.map( _.length ) must_==(\/-(3))
       ticketDisj.map( _.map(_.id) ) must_==(\/-(List(1337,1338,1339)))
@@ -86,7 +86,7 @@ object TicketParserSpec extends mutable.Specification {
     "Not die if no tickets were returned" in {
       val ticketDisj = Ticket.parseTickets(
         dtf,dtz,"RT/4.0.12 200 Ok\n\nNo matching results."
-      ).run
+      )
 
       ticketDisj.map( _.length ) must_==(\/-(0))
     }

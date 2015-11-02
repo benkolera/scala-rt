@@ -102,6 +102,10 @@ object QueryBuilderSpec extends mutable.Specification {
         CF("Power Level").gt(9000)
       ) must_== ("'CF.{Power Level}' > 9000")
     }
+    "Build lte and gte queries" in {
+      bqs( Due.gte(dt) ) must_== ("(Due = '2013-07-06 03:33:42' OR Due > '2013-07-06 03:33:42')" )
+      bqs( Due.lte(dt) ) must_== ("(Due = '2013-07-06 03:33:42' OR Due < '2013-07-06 03:33:42')" )
+    }
     "Build queries" in {
       val q = Queue.matches("dev") AND CF("Power Level").gt(9000)
       bqs( q ) must_== (

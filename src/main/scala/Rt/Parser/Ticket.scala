@@ -21,13 +21,13 @@ object Ticket {
   def extractTicketPeople(
     m: Map[String,String]
   ): Parser[Rt.TicketPeople] = {
-    (
-      Field.extractField(m)("Owner").map( Some(_).filter( _ != "Nobody" ) ) |@|
-      Field.extractField(m)("Creator") |@|
-      Field.extractFieldList(m)("Requestors") |@|
-      Field.extractFieldList(m)("Cc") |@|
-      Field.extractFieldList(m)("AdminCc")
-    ) { Rt.TicketPeople.apply _ }
+    for {
+      o  <- Field.extractField(m)("Owner").map( Some(_).filter( _ != "Nobody" ) )
+      c  <- Field.extractField(m)("Creator") 
+      rs <- Field.extractFieldList(m)("Requestors") 
+      cc <- Field.extractFieldList(m)("Cc") 
+      ac <- Field.extractFieldList(m)("AdminCc")
+    } yield Rt.TicketPeople.apply(o,c,rs,cc,ac)
   }
 
   def extractTicketPriority(
@@ -45,15 +45,15 @@ object Ticket {
   ): Parser[Rt.TicketDates] = {
     val extractFieldDateTime = Field.extractFieldDateTime( tz ) _
     val extractFieldOptDateTime = Field.extractFieldOptDateTime( tz ) _
-    (
-      extractFieldDateTime(dtf)(m)("Created") |@|
-      extractFieldDateTime(dtf)(m)("LastUpdated") |@|
-      extractFieldOptDateTime(dtf)(m)("Starts") |@|
-      extractFieldOptDateTime(dtf)(m)("Started") |@|
-      extractFieldOptDateTime(dtf)(m)("Due") |@|
-      extractFieldOptDateTime(dtf)(m)("Resolved") |@|
-      extractFieldOptDateTime(dtf)(m)("Told")
-    ){ Rt.TicketDates.apply _ }
+    for {
+      c  <- extractFieldDateTime(dtf)(m)("Created")
+      lu <- extractFieldDateTime(dtf)(m)("LastUpdated") 
+      ss <- extractFieldOptDateTime(dtf)(m)("Starts") 
+      sd <- extractFieldOptDateTime(dtf)(m)("Started") 
+      d  <- extractFieldOptDateTime(dtf)(m)("Due") 
+      rr <- extractFieldOptDateTime(dtf)(m)("Resolved") 
+      t  <- extractFieldOptDateTime(dtf)(m)("Told")
+    } yield Rt.TicketDates.apply(c,lu,ss,sd,d,rr,t)
   }
 
   val numberRe = """^(\d+)$""".r
@@ -63,13 +63,13 @@ object Ticket {
   def extractTicketEffort(
     m: Map[String,String]
   ): Parser[Rt.TicketEffort] = {
-    def extractEffort( fieldName:String ) =
+    def extractEffort( fieldName:String ):Parser[Int] =
       Field.extractField(m)(fieldName).flatMap{
-      case numberRe(minutes) => minutes.toInt.point[Parser]
-      case minutesRe(minutes) => minutes.toInt.point[Parser]
-      case hoursRe(hours) => (hours.toDouble * 60).toInt.point[Parser]
-      case s => parserFail(InvalidField(fieldName,s"Unknown effort value: $s"))
-    }
+        case numberRe(minutes) => minutes.toInt.point[Parser]
+        case minutesRe(minutes) => minutes.toInt.point[Parser]
+        case hoursRe(hours) => (hours.toDouble * 60).toInt.point[Parser]
+        case s => parserFail(InvalidField(fieldName,s"Unknown effort value: $s"))
+      }
 
     (
       extractEffort("TimeEstimated") |@|
@@ -111,7 +111,7 @@ object Ticket {
   ):Parser[Option[Rt.Ticket]] = {
     val parse1Ticket = parseSingleTicket(dtf,tz) _
     parseResponse( responseStr ).flatMap{
-      case ticketNotFoundRe()::ls => None.point[Parser]
+      case ticketNotFoundRe()::ls => none[Rt.Ticket].point[Parser]
       case ls                     => parse1Ticket(ls).map( Some(_) )
     }
   }
@@ -123,26 +123,26 @@ object Ticket {
   ):Parser[List[Rt.Ticket]] = {
     val parse1Ticket = parseSingleTicket(dtf,tz) _
     parseResponse( responseStr ).flatMap{
-      case ticketsEmptyRe()::ls => Nil.point[Parser]
-      case lines => splitMultipart( lines ).map( parse1Ticket ).sequenceU
+      case ticketsEmptyRe()::ls => List[Rt.Ticket]().point[Parser]
+      case lines => splitMultipart( lines ).traverseU( parse1Ticket )
     }
   }
 
   private def parseSingleTicket(
     dtf: DateTimeFormatter , tz: DateTimeZone
-  )(lines: List[String]) = {
+  )(lines: List[String]):Parser[Rt.Ticket] = {
     Field.parseFieldMap( lines ).flatMap( fieldMap => {
-      (
-        Field.extractField(fieldMap)("id").flatMap(extractTicketId) |@|
-          Field.extractField(fieldMap)("Queue") |@|
-          Field.extractField(fieldMap)("Subject") |@|
-          Field.extractField(fieldMap)("Status") |@|
-          extractTicketPeople( fieldMap ) |@|
-          extractTicketPriority( fieldMap ) |@|
-          extractTicketDates( dtf, tz, fieldMap ) |@|
-          extractTicketEffort( fieldMap ) |@|
-          extractCustomFields( fieldMap ).point[Parser]
-      ){ Rt.Ticket.apply _ }
+      for {
+        id <- Field.extractField(fieldMap)("id").flatMap(extractTicketId) 
+        q  <- Field.extractField(fieldMap)("Queue") 
+        sb <- Field.extractField(fieldMap)("Subject")
+        s  <- Field.extractField(fieldMap)("Status")
+        tp <- extractTicketPeople( fieldMap )
+        p  <- extractTicketPriority( fieldMap )
+        td <- extractTicketDates( dtf, tz, fieldMap )
+        te <- extractTicketEffort( fieldMap )
+        cf <- extractCustomFields( fieldMap ).point[Parser]
+      } yield Rt.Ticket.apply(id,q,sb,s,tp,p,td,te,cf)
     })
   }
 

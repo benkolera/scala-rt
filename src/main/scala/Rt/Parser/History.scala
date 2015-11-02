@@ -73,7 +73,7 @@ object History {
     }
 
     def watcherTypeToEnum( s:String ) = {
-      EitherT.fromTryCatch(
+      \/.fromTryCatchNonFatal(
         WatcherType.withName(s).point[Scalaz.Id]
       ).leftMap( _ =>
         InvalidField(
@@ -314,13 +314,13 @@ object History {
     }
 
     def systemErrorConstructor( a: ConstructorArgs ):ConstructorOut = {
-      SystemError(
+      \/-(SystemError(
         id = a.id,
         ticketId = a.ticketId,
         description = a.desc,
         creator = a.creator,
         created = a.created
-      ).point[Parser]
+      ))
     }
 
     def takeConstructor( a: ConstructorArgs ):ConstructorOut = {

@@ -6,28 +6,28 @@ import scalaz._
 object FieldParserSpec extends mutable.Specification {
   "The Field Parser" should {
     "Should return no Fields" in {
-      Field.parseFields(Nil).run must beEqualTo(\/-(Nil))
+      Field.parseFields(Nil) must beEqualTo(\/-(Nil))
     }
     "Should return one field for a single line" in {
       Field.parseFields(List(
         "1337: This is a field"
-      )).run must beEqualTo(\/-(List(Field("1337","This is a field"))))
+      )) must beEqualTo(\/-(List(Field("1337","This is a field"))))
     }
     "Should handle fields with no value" in {
       Field.parseFields(List(
         "CF.{Cost Centre}:"
-      )).run must beEqualTo(\/-(List(Field("CF.{Cost Centre}",""))))
+      )) must beEqualTo(\/-(List(Field("CF.{Cost Centre}",""))))
     }
     "Should handle fields with curly braces" in {
       Field.parseFields(List(
         "CF.{Progress}: This is progress"
-      )).run must beEqualTo(\/-(List(Field("CF.{Progress}","This is progress"))))
+      )) must beEqualTo(\/-(List(Field("CF.{Progress}","This is progress"))))
     }
     "Should return one field for a multiline field" in {
       Field.parseFields(List(
         "1337: This is a field",
         "       That spans over multi lines"
-      )).run must beEqualTo(\/-(List(
+      )) must beEqualTo(\/-(List(
         Field("1337","This is a field\n That spans over multi lines"))
       ))
     }
@@ -37,7 +37,7 @@ object FieldParserSpec extends mutable.Specification {
         "      That spans over multi lines",
         "FooBar: bar field",
         "        some more"
-      )).run must beEqualTo(\/-(List(
+      )) must beEqualTo(\/-(List(
         Field("1337","This is a field\nThat spans over multi lines"),
         Field("FooBar","bar field\nsome more")
       )))
@@ -48,7 +48,7 @@ object FieldParserSpec extends mutable.Specification {
         "CF.{Multi Line Custom Field}: This is a field",
         "    That spans over multi lines",
         "     but isn't indented how everything else is :("
-      )).run must beEqualTo(\/-(List(
+      )) must beEqualTo(\/-(List(
         Field(
           "CF.{Multi Line Custom Field}",
           List(
@@ -64,7 +64,7 @@ object FieldParserSpec extends mutable.Specification {
         "Fooo: This is a field",
         "      That spans over multi lines",
         "bad field"
-      )).run must beEqualTo(-\/(BadBodyLine(
+      )) must beEqualTo(-\/(BadBodyLine(
         List("Fooo: This is a field","      That spans over multi lines","bad field"),
         3,
         "Line of a multiline field didn't start with expected indent ((?s)\\s{6}(.*))."
@@ -73,7 +73,7 @@ object FieldParserSpec extends mutable.Specification {
     "Should error if the payload doesn't start with a field" in {
       Field.parseFields(List(
         "bad field"
-      )).run must beEqualTo(-\/(BadBodyLine(
+      )) must beEqualTo(-\/(BadBodyLine(
         List("bad field"),
         1,
         "No field found before response body."

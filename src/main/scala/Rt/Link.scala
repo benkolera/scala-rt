@@ -20,7 +20,7 @@ object Link {
   import dispatch._
   import scalaz._
   import syntax.monad._
-  import scalaz.contrib.std.scalaFuture._
+  import std.scalaFuture._
   import std.list._
   import syntax.traverse._
   import scala.concurrent.Future

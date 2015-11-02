@@ -13,7 +13,7 @@ import org.joda.time.DateTimeZone
 
 object TicketSpec extends mutable.Specification with Mockito {
 
-  import scalaz.contrib.std.scalaFuture._
+  import std.scalaFuture._
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.duration.Duration
 

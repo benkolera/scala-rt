@@ -17,7 +17,7 @@ object HistoryParserSpec extends mutable.Specification {
 
       val historyDisj = History.parseHistory(
         dtz,Source.fromURL(getClass.getResource("/historySingle.txt")).mkString
-      ).run
+      )
 
       val expectedHistory = Create(
         id = 10032769,
@@ -58,7 +58,7 @@ object HistoryParserSpec extends mutable.Specification {
 
       val historyDisj = History.parseHistory(
         dtz,Source.fromURL(getClass.getResource("/history.txt")).mkString
-      ).run
+      )
 
       if(historyDisj.isLeft) {
         historyDisj must be(Nil)

@@ -5,20 +5,21 @@ organization := "com.benkolera"
 
 name := "rt"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.7"
 
 scalacOptions ++= Seq("-feature","-deprecation","-Xfatal-warnings")
 
+val scalazVersion = "7.1.4"
+
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
-  "org.scalaz" %% "scalaz-core" % "7.0.2",
-  "org.scalaz" %% "scalaz-effect" % "7.0.2",
-  "org.typelevel" %% "scalaz-contrib-210" % "0.1.4" ,
-  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
-  "com.github.nscala-time" %% "nscala-time" % "0.4.2",
-  "com.github.tototoshi" %% "scala-csv" % "0.8.0",
+  "org.scalaz" %% "scalaz-core" % scalazVersion,
+  "org.scalaz" %% "scalaz-effect" % scalazVersion,
+  "com.github.nscala-time" %% "nscala-time" % "1.8.0",
+  "com.github.tototoshi" %% "scala-csv" % "1.2.2",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "org.specs2" %% "specs2" % "2.0" % "test"
+  "org.specs2" %% "specs2-core" % "2.4.9" % "test",
+  "org.specs2" %% "specs2-mock" % "2.4.9" % "test"
 )
 
 resolvers ++= Seq(

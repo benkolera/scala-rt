@@ -4,6 +4,7 @@ import std.list._
 import syntax.traverse._
 import syntax.monad._
 import std.function._
+import std.option._
 import org.joda.time.{DateTime,DateTimeZone}
 import org.joda.time.format.DateTimeFormatter
 import scala.util.matching.Regex
@@ -36,10 +37,8 @@ object Field {
       }
     ).run(None).run._2
 
-    EitherT(
-      result.bimap(
-        e => BadBodyLine( cleanLines , e._2 + 1 , e._1 ), _.reverse
-      ).point[Scalaz.Id]
+    result.bimap(
+      e => BadBodyLine( cleanLines , e._2 + 1 , e._1 ), _.reverse
     )
 
   }
@@ -91,9 +90,7 @@ object Field {
     fieldName: String
   ):Parser[A] = {
     extractField(fieldMap)(fieldName).flatMap( s =>
-      EitherT(
-        read(s).leftMap( InvalidField( fieldName, _ ) ).point[Scalaz.Id]
-      )
+      read(s).leftMap( InvalidField( fieldName, _ ) )
     )
   }
 
@@ -102,8 +99,8 @@ object Field {
     name: String,
     value: List[String]
   )
-  type FieldParserState[+A] = StateT[Free.Trampoline,Option[PartialField],A]
-  type FieldParser[+A] = EitherT[FieldParserState,(String,Int),A]
+  type FieldParserState[A] = StateT[Free.Trampoline,Option[PartialField],A]
+  type FieldParser[A] = EitherT[FieldParserState,(String,Int),A]
 
   //There has got to be a better way to get these types out of the way.
   def makeFieldParser[A](
@@ -112,21 +109,21 @@ object Field {
     EitherT[FieldParserState,(String,Int),A]( StateT( s ) )
   }
 
-  def fieldParser[A](s: (Option[PartialField] => (Option[PartialField],A))) =
+  def fieldParser[A](s: (Option[PartialField] => (Option[PartialField],A))):FieldParser[A] =
     makeFieldParser( newState => s(newState).point[Free.Trampoline].map(
       t => t._1 -> \/-(t._2)
     ))
 
 
-  def getWip = fieldParser( s => (s,s) )
-  def endPartialField( successor: Option[PartialField] ) = fieldParser(
+  def getWip:FieldParser[Option[PartialField]] = fieldParser( s => (s,s) )
+  def endPartialField( successor: Option[PartialField] ) = fieldParser[Option[Field]](
     s => {
       (successor,s.map(f => Field(f.name,f.value.reverse.mkString("\n"))))
     }
   )
 
-  def set( pf: Option[PartialField] ) = {
-    fieldParser( s => (pf,()) )
+  def set( pf: Option[PartialField] ):FieldParser[Unit] = {
+    fieldParser[Unit]( s => (pf,()) )
   }
 
   def fail[A]( msg: String , lineNum: Int ) =
@@ -138,7 +135,7 @@ object Field {
 
   def appendLineToCurrent( lineNum: Int , line: String ):FieldParser[Unit] = {
     getWip.flatMap{
-      case None => fail("No field found before response body.",lineNum)
+      case None => fail[Unit]("No field found before response body.",lineNum)
       case Some(pf@PartialField(None,name,_)) => line match {
         case paddingRe(padding) => {
           val maxIndent = Math.min( padding.length, name.length + 2 )
@@ -149,14 +146,14 @@ object Field {
               Some(pf.copy( indentRe = Some(re), value = rest :: pf.value ) )
             )
             case _ => {
-              fail(
+              fail[Unit](
                 s"Start of line didn't match expected indent ($maxIndent): $line",
                 lineNum
               )
             }
           }
         }
-        case _ => fail(
+        case _ => fail[Unit](
           s"2nd field line didn't start with a indent.",lineNum
         )
       }
@@ -164,7 +161,7 @@ object Field {
         case indentRe(rest) => set(
           Some(pf.copy( value = rest :: pf.value ))
         )
-        case _ => fail(
+        case _ => fail[Unit](
           s"Line of a multiline field didn't start with expected indent ($indentRe).",
           lineNum
         )
@@ -173,7 +170,7 @@ object Field {
   }
 
   def consumeNoop():FieldParser[Option[Field]] = {
-    None.point[FieldParser]
+    none[Field].point[FieldParser]
   }
 
   val commentRe     = """^#.+""".r
@@ -186,10 +183,10 @@ object Field {
         endPartialField(Some(PartialField(None,name,List(rest))))
       }
       case ""                      => {
-        endPartialField(None)
+        endPartialField(none[PartialField])
       }
       case _                       => {
-        appendLineToCurrent( lineNum, line ).map( _ => None )
+        appendLineToCurrent( lineNum, line ).map( _ => none[Field] )
       }
     }
   }

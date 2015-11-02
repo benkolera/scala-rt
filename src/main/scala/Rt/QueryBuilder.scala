@@ -29,6 +29,8 @@ object QueryBuilder {
     def inNel( nel:NonEmptyList[Value] ) = SetCompare( this , In , nel )
     def notIn( v: Value , rest:Value* ) = SetCompare( this , NotIn , NonEmptyList(v , rest:_*) )
     def notIn( nel:NonEmptyList[Value] ) = SetCompare( this , NotIn , nel )
+    def gte( v:Value ) = this.eqs(v) OR this.gt(v)
+    def lte( v:Value ) = this.eqs(v) OR this.lt(v)
   }
   case object TicketId extends Identifier
   case object Queue extends Identifier

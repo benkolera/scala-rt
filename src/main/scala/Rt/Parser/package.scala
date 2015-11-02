@@ -6,10 +6,9 @@ import scala.annotation.tailrec
 
 package object Parser {
 
-  type Parser[+A] = EitherT[Scalaz.Id,ParserError,A]
+  type Parser[A] = ParserError \/ A
 
-  private[Parser] def parserFail[A]( err: ParserError ) =
-    EitherT.left( err.point[Scalaz.Id] )
+  private[Parser] def parserFail[A]( err: ParserError ):Parser[A] = -\/(err)
 
   def rtStatusMatcher( status: String ) = {
     ("""RT/4.\d+.\d+ """ + status).r
@@ -36,7 +35,7 @@ package object Parser {
 
   val multipartSeparator = "--"
 
-  private[Parser] def splitMultipart( lines: List[String] ) = {
+  private[Parser] def splitMultipart( lines: List[String] ):List[List[String]] = {
     type Output = List[List[String]]
     @tailrec
     def hlpr( lines: List[String] , out: Output ):Output =

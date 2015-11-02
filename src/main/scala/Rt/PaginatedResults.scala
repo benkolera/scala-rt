@@ -15,7 +15,7 @@ object PaginatedResults {
   import syntax.monad._
   import syntax.traverse._
   import std.list._
-  import scalaz.contrib.std.scalaFuture._
+  import std.scalaFuture._
   import scala.concurrent.Future
 
   def paginateWSubQuery[A,B](
@@ -48,7 +48,7 @@ object PaginatedResults {
     implicit m:Monad[Future]
   ):RtM[PaginatedResults[B]] = {
     for {
-      pgres <- EitherT( calculatePagination(qr,page,width).point[RtRws] )
+      pgres <- EitherT( calculatePagination[A](qr,page,width).point[RtRws] )
       bs    <- pgres.results.map( reifier ).sequenceU
     } yield pgres.copy( results = bs )
   }
@@ -57,7 +57,7 @@ object PaginatedResults {
     qr: List[A] ,
     page:Int ,
     width: Int
-  ): InvalidPagination \/ PaginatedResults[A] = {
+  ): Error \/ PaginatedResults[A] = {
     for {
       cnt <- calculatePageCount( qr.length, width )
       _   <- validatePage( page, cnt )

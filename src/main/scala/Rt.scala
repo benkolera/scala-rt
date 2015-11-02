@@ -12,7 +12,7 @@ import com.ning.http.client.{
 
 import scalaz._
 import syntax.monad._
-import scalaz.contrib.std.scalaFuture._
+import std.scalaFuture._
 import std.list._
 import std.either._
 import syntax.std.boolean._
@@ -23,10 +23,10 @@ import language.higherKinds
 package object Rt {
 
   type CookieJar = java.util.List[Cookie]
-  type RtRwsT[M[+_],+A] = ReaderWriterStateT[M,Config,List[String],CookieJar,A]
-  type RtRws[+A] = RtRwsT[Future,A]
-  type RtEitherT[M[+_],+A] = EitherT[M,Error,A]
-  type RtM[+A] = RtEitherT[RtRws,A]
+  type RtRwsT[M[_],A] = ReaderWriterStateT[M,Config,List[String],CookieJar,A]
+  type RtRws[A] = RtRwsT[Future,A]
+  type RtEitherT[M[_],A] = EitherT[M,Error,A]
+  type RtM[A] = RtEitherT[RtRws,A]
 
   def emptyCookieJar = new java.util.ArrayList[com.ning.http.client.Cookie]()
 
@@ -92,12 +92,12 @@ package object Rt {
   ): RtM[A] =
     EitherT( pOut.leftMap{
       case Parser.CredentialsRequired => NotLoggedIn
-      case parseErr            => BadResponse(parseErr)
-    }.run.point[RtRws] )
+      case parseErr                   => BadResponse(parseErr)
+    }.point[RtRws] )
 
   // == PRIVATE METHODS ========================================================
 
-  private def rtRws[A](
+  private[Rt] def rtRws[A](
     f: (Config,CookieJar) => Future[(List[String],A,CookieJar)]
   )( implicit a:Monad[Future] ):RtRws[A] =
     ReaderWriterStateT[Future,Config,List[String],CookieJar,A]( f )

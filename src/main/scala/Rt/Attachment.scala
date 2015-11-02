@@ -6,7 +6,7 @@ object Attachment {
   import scalaz._
   import syntax.monad._
   import std.list._
-  import scalaz.contrib.std.scalaFuture._
+  import std.scalaFuture._
   import scala.concurrent.Future
 
   def listForTicket(id:Int)( implicit m:Monad[Future] ) = {

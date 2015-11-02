@@ -92,7 +92,7 @@ object Ticket {
   import dispatch._
   import scalaz._
   import syntax.monad._
-  import scalaz.contrib.std.scalaFuture._
+  import std.scalaFuture._
   import std.list._
   import std.either._
   import scala.concurrent.Future
