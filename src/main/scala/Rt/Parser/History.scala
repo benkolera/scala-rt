@@ -18,9 +18,10 @@ object History {
 
   val attachRe = """(.+?) \((\d+(?:\.\d+)?)([bkmg])\)""".r
   val historyDtf = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" )
-  def parseHistory(
-    tz:DateTimeZone, responseStr: String
-  ):Parser[List[TicketHistory]] = {
+
+  private[Parser] def parseHistoryOne(
+    tz:DateTimeZone, historyLines: List[String]
+  ):Parser[TicketHistory] = {
 
     val extractDateTime = {
       def inner(m:Map[String,String])(fieldName:String) = {
@@ -403,27 +404,51 @@ object History {
       )( _.point[Parser] )
     }
 
-    parseResponse( responseStr ).flatMap( lines =>
-      splitMultipart( lines ).map( historyLines =>
-        Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
-          val extInt      = Field.extractFieldInt( fieldMap )
-          val extString   = Field.extractString( fieldMap )
-          val extDateTime = extractDateTime( fieldMap )
+    Field.parseFieldMap( historyLines ).flatMap( fieldMap => {
+      val extInt      = Field.extractFieldInt( fieldMap )
+      val extString   = Field.extractString( fieldMap )
+      val extDateTime = extractDateTime( fieldMap )
 
-          for {
-            id          <- extInt( "id" )
-            ticket      <- extInt("Ticket")
-            desc        <- extString("Description")
-            creator     <- extString("Creator")
-            created     <- extDateTime("Created")
-            constructor <- extString("Type").flatMap( getConstructor _ )
-            history     <- constructor(
-              ConstructorArgs(id,ticket,desc,creator,created,fieldMap)
-            )
-          } yield history
-        })
-      ).sequenceU
+      for {
+        id          <- extInt( "id" )
+        ticket      <- extInt("Ticket")
+        desc        <- extString("Description")
+        creator     <- extString("Creator")
+        created     <- extDateTime("Created")
+        constructor <- extString("Type").flatMap( getConstructor _ )
+        history     <- constructor(
+          ConstructorArgs(id,ticket,desc,creator,created,fieldMap)
+        )
+      } yield history
+    })
+  }
+
+  def parseHistory(
+    tz:DateTimeZone,
+    responseStr: String
+  ):Parser[List[TicketHistory]] = 
+    parseResponse( responseStr ).flatMap( lines =>
+      splitMultipart( lines ).traverse( parseHistoryOne( tz, _ ))
     )
+
+  def parseHistorySingle(
+    tz:DateTimeZone,
+    responseStr: String
+  ):Parser[TicketHistory] = 
+    parseResponse( responseStr ).flatMap( lines =>
+      parseHistoryOne(tz, lines)
+    )
+  
+
+  def parseHistoryList( responseStr: String ):Parser[List[Int]] = {
+    parseResponse(responseStr).flatMap( lines =>
+      Field.parseFieldMap(lines).flatMap(
+        _.keys.toList.traverseU( x =>
+          \/.fromTryCatchNonFatal(x.toInt).leftMap( _ => InvalidField(x,"Key wasn't an int") )
+        )
+      )
+    )
+
   }
 
 }

@@ -1,6 +1,9 @@
 Changes to com.benkolera scala-rt
 =================================
 
+2015-11-10 - 0.6.1 - Ben Kolera
+- Fixed field parser to choose a indentation level > 2 && < fieldName + 2 based on all lines rather than the second
+
 2015-11-02 - 0.6.0 - Ben Kolera
 - Upgraded to scala 2.11 and scalaz 7.1
 - Added gte and lte to the query builder. 

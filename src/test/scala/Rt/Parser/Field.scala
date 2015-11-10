@@ -31,6 +31,15 @@ object FieldParserSpec extends mutable.Specification {
         Field("1337","This is a field\n That spans over multi lines"))
       ))
     }
+    "Should return one field for a multiline field that has inconsistent indentation" in {
+      Field.parseFields(List(
+                          "1337: This is a field",
+                          "   That spans over multi lines",
+                          "  With some weird assed indentation going on"
+                        )) must beEqualTo(\/-(List(
+                                                Field("1337","This is a field\n That spans over multi lines\nWith some weird assed indentation going on"))
+                                          ))
+    }
     "Should return many multiline fields" in {
       Field.parseFields(List(
         "1337: This is a field",
@@ -67,7 +76,7 @@ object FieldParserSpec extends mutable.Specification {
       )) must beEqualTo(-\/(BadBodyLine(
         List("Fooo: This is a field","      That spans over multi lines","bad field"),
         3,
-        "Line of a multiline field didn't start with expected indent ((?s)\\s{6}(.*))."
+        "Start of line didn't match expected indent (2)"
       )))
     }
     "Should error if the payload doesn't start with a field" in {

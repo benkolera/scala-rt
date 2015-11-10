@@ -4,7 +4,10 @@ import std.list._
 import syntax.traverse._
 import syntax.monad._
 import std.function._
+import std.anyVal._
+import syntax.std.boolean._
 import std.option._
+import syntax.std.option._
 import org.joda.time.{DateTime,DateTimeZone}
 import org.joda.time.format.DateTimeFormatter
 import scala.util.matching.Regex
@@ -95,9 +98,8 @@ object Field {
   }
 
   case class PartialField(
-    indentRe: Option[Regex],
     name: String,
-    value: List[String]
+    value: NonEmptyList[(Int,String)]
   )
   type FieldParserState[A] = StateT[Free.Trampoline,Option[PartialField],A]
   type FieldParser[A] = EitherT[FieldParserState,(String,Int),A]
@@ -116,10 +118,37 @@ object Field {
 
 
   def getWip:FieldParser[Option[PartialField]] = fieldParser( s => (s,s) )
-  def endPartialField( successor: Option[PartialField] ) = fieldParser[Option[Field]](
-    s => {
-      (successor,s.map(f => Field(f.name,f.value.reverse.mkString("\n"))))
+
+  def validateIndentation( indent:Int, indentationRe:Regex )( line:(Int,String) ):Validation[NonEmptyList[(String,Int)],String] = {
+    line._2 match {
+      case indentationRe(rest) => Validation.success[NonEmptyList[(String,Int)],String]( rest )
+      case _ => Validation.failure[NonEmptyList[(String,Int)],String](NonEmptyList((
+        s"Start of line didn't match expected indent ($indent)",
+        line._1
+      )))
     }
+  }
+
+  def endPartialField( successor: Option[PartialField] ) = makeFieldParser[Option[Field]]( s =>
+    Trampoline.delay((successor,s.fold( \/.right[(String,Int),Option[Field]](none[Field]) ){ pf =>
+      val outList   = pf.value.reverse
+      outList.tail match {
+        case Nil   => \/.right( Field( pf.name , outList.head._2 ).some )
+        case rest  => {
+          val maxIndent = rest.map( _._2.takeWhile( _ == ' ' ).length ).sorted.headOption.getOrElse(0)
+          val minIndent = Math.max( 2, Math.min( maxIndent, pf.name.length + 2 ) )
+
+          val re = s"(?s)\\s{${minIndent}}(.*)".r
+
+          outList.tail.traverseU( validateIndentation( minIndent, re ) _ ).map(
+            x => outList.head._2 + (x.empty).fold("","\n" + x.mkString("\n"))
+          ) match {
+            case Success(s) => \/.right(some(Field(pf.name,s)))
+            case Failure(f) => \/.left( f.head )
+          }
+        }
+      }
+    }))
   )
 
   def set( pf: Option[PartialField] ):FieldParser[Unit] = {
@@ -136,36 +165,7 @@ object Field {
   def appendLineToCurrent( lineNum: Int , line: String ):FieldParser[Unit] = {
     getWip.flatMap{
       case None => fail[Unit]("No field found before response body.",lineNum)
-      case Some(pf@PartialField(None,name,_)) => line match {
-        case paddingRe(padding) => {
-          val maxIndent = Math.min( padding.length, name.length + 2 )
-          val re = s"(?s)\\s{${maxIndent}}(.*)".r
-
-          line match {
-            case re(rest) => set(
-              Some(pf.copy( indentRe = Some(re), value = rest :: pf.value ) )
-            )
-            case _ => {
-              fail[Unit](
-                s"Start of line didn't match expected indent ($maxIndent): $line",
-                lineNum
-              )
-            }
-          }
-        }
-        case _ => fail[Unit](
-          s"2nd field line didn't start with a indent.",lineNum
-        )
-      }
-      case Some(pf@PartialField(Some(indentRe),_,_)) => line match {
-        case indentRe(rest) => set(
-          Some(pf.copy( value = rest :: pf.value ))
-        )
-        case _ => fail[Unit](
-          s"Line of a multiline field didn't start with expected indent ($indentRe).",
-          lineNum
-        )
-      }
+      case Some(pf) => set( pf.copy( value = (lineNum,line) <:: pf.value ).some )
     }
   }
 
@@ -180,7 +180,7 @@ object Field {
     line match {
       case commentRe()             => consumeNoop()
       case fieldStartRe(name,rest) => {
-        endPartialField(Some(PartialField(None,name,List(rest))))
+        endPartialField(Some(PartialField(name,NonEmptyList(lineNum -> rest))))
       }
       case ""                      => {
         endPartialField(none[PartialField])

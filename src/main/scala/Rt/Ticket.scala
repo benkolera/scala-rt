@@ -91,12 +91,11 @@ object Ticket {
 
   import dispatch._
   import scalaz._
-  import syntax.monad._
+  import syntax.traverse._
   import std.scalaFuture._
   import std.list._
-  import std.either._
+  import syntax.std.boolean._
   import scala.concurrent.Future
-  import scala.collection.JavaConversions._
   import scala.util.matching.Regex
   import QueryBuilder.{Query,OrderBy}
 
@@ -116,6 +115,27 @@ object Ticket {
       body <- callApi( req )
       tz   <- getTz
       hist <- liftParseError(Parser.History.parseHistory(tz,body))
+    } yield hist
+  }
+
+  def historySafe(id:Int,maxTransactionsBeforePaginate:Int)( implicit m:Monad[Future] ) = {
+    for {
+      req  <- rtApi.map( _ / "ticket" / id / "history" )
+      body <- callApi( req )
+      hist <- liftParseError(Parser.History.parseHistoryList(body))
+      out  <- (hist.size > maxTransactionsBeforePaginate).fold(
+        hist.traverseU(singleHistory(id, _)),
+        history(id)
+      )
+    } yield out
+  }
+
+  def singleHistory(ticketId:Int,historyId:Int)(implicit m:Monad[Future] ) = {
+    for {
+      req  <- rtApi.map( _ / "ticket" / ticketId / "history" / "id" / historyId )
+      body <- callApi( req )
+      tz   <- getTz
+      hist <- liftParseError(Parser.History.parseHistorySingle(tz,body))
     } yield hist
   }
 
