@@ -2,7 +2,7 @@ Warning - Crappy Alpha Software!
 ================================
 
 This is a first go at a scala based interface to RT. It hasn't been production
-tested and is still pretty crusty codebase-wise yet so use at your own peril! 
+tested and is still pretty crusty codebase-wise yet so use at your own peril! We do you it in production code, however, so it isn't too bad.  
 
 Installation
 ============
