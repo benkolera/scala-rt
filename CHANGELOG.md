@@ -1,6 +1,9 @@
 Changes to com.benkolera scala-rt
 =================================
 
+2015-11-11 - 0.7.0 - Ben Kolera
+- Added in a way to grab users from RT.
+
 2015-11-10 - 0.6.1 - Ben Kolera
 - Fixed field parser to choose a indentation level > 2 && < fieldName + 2 based on all lines rather than the second
 
