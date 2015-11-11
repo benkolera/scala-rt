@@ -1,0 +1,27 @@
+RT/4.0.17 200 Ok
+
+id: user/377964
+Name: bkolera
+Password: ********
+EmailAddress: bkolera@iseek.com.au
+RealName: Ben Kolera
+NickName: Ben
+MobilePhone: 0488145427
+
+Signature: Ben Kolera
+           Manager, Development
+            
+           Phone: 1300 661 668 | Direct: 07 3307 6249 | Mobile: 0488 145 427
+           Email: ben.kolera@iseek.com.au | Web: http://www.iseek.com.au
+           Level 4, 60 Edward St, Brisbane CBD, QLD, 4000
+            
+           This e-mail and any files transmitted with it may contain confidential and privileged material 
+           for the sole 
+           use of the intended recipient. Any review, use, distribution or disclosure by others is strictly 
+           prohibited. If 
+           you are not the intended recipient (or authorised to receive for the recipient), please contact 
+           the sender by 
+           reply e-mail and delete all copies of this message.
+
+Privileged: 1
+Disabled: 0
