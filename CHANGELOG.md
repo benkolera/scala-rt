@@ -1,6 +1,10 @@
 Changes to com.benkolera scala-rt
 =================================
 
+2015-11-19 - 0.9.0 - Ben Kolera
+- Don't need the RtM versions. Dtf and TZ are always the same for CFs.
+- Sadness
+
 2015-11-19 - 0.8.0 - Ben Kolera
 - Added in a RtM version of getDate from CustomFieldValue
 
