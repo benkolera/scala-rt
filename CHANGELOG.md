@@ -1,6 +1,9 @@
 Changes to com.benkolera scala-rt
 =================================
 
+2015-11-19 - 0.9.1 - Ben Kolera
+- Messed up the date formatter
+
 2015-11-19 - 0.9.0 - Ben Kolera
 - Don't need the RtM versions. Dtf and TZ are always the same for CFs.
 - Sadness

@@ -15,7 +15,8 @@ case class CustomFieldValue( val string: String ) {
   override def toString: String = string
   def toInt(): String \/ Int = Read.readInt( toString )
   def toDouble(): String \/ Double = Read.readDouble( toString )
-  val cfDtf = DateTimeFormat.forPattern("YYYY-MM-DD HH:mm:ss")
+
+  val cfDtf = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
   def toDateTime(): String \/ DateTime =
     Read.readDateTime( cfDtf , DateTimeZone.UTC )( toString )
   def toOptDateTime(): String \/ Option[DateTime] =
