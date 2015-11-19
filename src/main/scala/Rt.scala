@@ -112,7 +112,7 @@ package object Rt {
   private def getCookies( implicit m:Monad[Future] ) =
     rtM( (r,s) => (Nil,s,s).point[Future] )
 
-  private def getConfig( implicit m:Monad[Future] ) =
+  private[Rt] def getConfig( implicit m:Monad[Future] ) =
     rtM( (r,s) => (Nil,r,s).point[Future] )
   private def getUsername( implicit m:Monad[Future] ) =
     getConfig.map( _.username )
